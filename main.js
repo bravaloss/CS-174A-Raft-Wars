@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 
 
 const scene = new THREE.Scene();
@@ -7,16 +8,30 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 // const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); //light blue for sky
 const shootSound = new Audio('./public/boom.mp3');
+const splashSound = new Audio('./public/splash.mp3');
+splashSound.volume = 0.1;
+shootSound.volume = 0.7;    
 
 let isFiring = false;
 let projectile;
-let initialVelocity = new THREE.Vector3(); // Will store the initial velocity of the projectile
-let gravity = -9.8; // Simulated gravity
-let launchTime; // The time when the projectile was launched
+let initialVelocity = new THREE.Vector3(); //store the initial velocity of the projectile
 let projectileVelocity = new THREE.Vector3();
 const initialSpeed = 15; // Adjust this to change how fast the projectile launches
 const gravityVector = new THREE.Vector3(0, -9.8, 0); // Gravity as a vector
+
+
 let lastTime = 0;
+let attachedObject = null;
+let cannonAttached = false;
+let cannonPosition = new THREE.Vector3();
+let defaultCameraPosition = new THREE.Vector3(0, 2, 15);
+let blendingFactor = 0.02;
+
+let cameraResetDelay = 2; // econds to wait before resetting camera
+let projectileRemovedTime = null; //
+let isInResetDelay = false; //check if we reset camera yet
+
+
 
 
 function translationMatrix(tx, ty, tz) {
@@ -56,8 +71,13 @@ function rotationMatrixZ(theta) {
 }
 
 function playShootSound() {
-    shootSound.currentTime = 0; // Reset the sound to the beginning
-    shootSound.play();          // Play the sound
+    shootSound.currentTime = 0; 
+    shootSound.play();          
+}
+
+function playSplashSound() {
+    splashSound.currentTime = 0;
+    splashSound.play();
 }
 
 //skibidi toilet
@@ -89,10 +109,11 @@ function createCloud() {
 //put clouds in the sky
 for (let i = 0; i < 5; i++) {
     const cloud = createCloud();
+    //random xyz coordinates in the sky
     cloud.position.set(
-        (Math.random() - 0.5) * 50,  // Random X position in the sky
-        Math.random() * 5 + 5,       // Random Y height above the water
-        -Math.random() * 50          // Random Z depth
+        (Math.random() - 0.5) * 50,  
+        Math.random() * 5 + 5,       
+        -Math.random() * 50          
     );
     scene.add(cloud);
 }
@@ -117,7 +138,7 @@ const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
 //water
-const waterGeometry = new THREE.PlaneGeometry(100, 100);
+const waterGeometry = new THREE.PlaneGeometry(500, 500);
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x1ca3ec, side: THREE.DoubleSide });
 const water = new THREE.Mesh(waterGeometry, waterMaterial);
 water.rotation.x = -Math.PI / 2; //makes the water horizontal
@@ -164,6 +185,35 @@ const islandMaterial = new THREE.MeshBasicMaterial({ color: 0xC2B280 }); // Sand
 const island = new THREE.Mesh(islandGeometry, islandMaterial);
 island.position.set(0, -0.5, -40); // Position it in the background
 scene.add(island);
+
+//ENEMIES!!!
+
+//enemy1 raft
+const enemyRaftGeometry1 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
+const enemyRaftMaterial1 = new THREE.MeshBasicMaterial({ color: 0x8B0000 }); // Dark red color
+const enemyRaft1 = new THREE.Mesh(enemyRaftGeometry1, enemyRaftMaterial1);
+enemyRaft1.position.set(12, -0.9, 0);
+scene.add(enemyRaft1);
+
+const enemyCubeGeometry1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+const enemyCubeMaterial1 = new THREE.MeshBasicMaterial({ color: 0x2F4F4F }); // Dark slate gray color
+const enemyCube1 = new THREE.Mesh(enemyCubeGeometry1, enemyCubeMaterial1);
+enemyCube1.position.set(12, -0.5, 0);
+scene.add(enemyCube1);
+
+//enemy2 raft
+const enemyRaftGeometry2 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
+const enemyRaftMaterial2 = new THREE.MeshBasicMaterial({ color: 0xFF4500 }); // Orange-red color
+const enemyRaft2 = new THREE.Mesh(enemyRaftGeometry2, enemyRaftMaterial2);
+enemyRaft2.position.set(15, -0.9, 0);
+scene.add(enemyRaft2);
+
+const enemyCubeGeometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+const enemyCubeMaterial2 = new THREE.MeshBasicMaterial({ color: 0x4B0082 }); // Indigo color
+const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
+enemyCube2.position.set(15, -0.5, 0);
+scene.add(enemyCube2);
+
 
 
 // const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 4, 16); // Tall, narrow cylinder for the trunk
@@ -219,7 +269,7 @@ function createPalmFrond() {
     return frondGroup;
 }
 
-// Create multiple fronds around the trunk
+
 function createPalmTree(trunkHeight = 10, frondsCount = 8) {
     const treeGroup = new THREE.Group();
     
@@ -304,11 +354,18 @@ function handleKeyDown(event)
     //arrow keys to aim cannon
     if (event.key === 'ArrowUp') {
         cannonAngle = Math.min(cannonAngle + rotationSpeed, Math.PI / 2);
-    } else if (event.key === 'ArrowDown') {
+    } 
+    else if (event.key === 'ArrowDown') 
+    {
         cannonAngle = Math.max(cannonAngle - rotationSpeed, 0);
-    } else if (event.key === ' ') { //space bar to shoot
+    } 
+    //space bar to shoot
+    else if (event.key === ' ') 
+    { 
         fireProjectile(cannonAngle);
         playShootSound();
+        cannonPosition.copy(cannon.position); //store cannon position
+        cannonAttached = true;
     }
 
     //reset cannon position and apply transformations for pivot rotation
@@ -351,8 +408,91 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+function updateCameraPosition(deltaTime) {
+    const currentTime = clock.getElapsedTime();
+
+    if (isFiring && projectile) {
+        
+        let cameraPosition = new THREE.Vector3(
+            projectile.position.x,
+            projectile.position.y + 2,
+            projectile.position.z + 10
+        );
+
+        camera.position.lerp(cameraPosition, blendingFactor);
+        camera.lookAt(projectile.position);
+        controls.enabled = false;
+        isInResetDelay = false; //reset delay flag
+    } else if (projectileRemovedTime && currentTime - projectileRemovedTime < cameraResetDelay) {
+        //keep camera in last position during delay until we reset view
+        controls.enabled = false;
+        isInResetDelay = true;
+    } else {
+        //only reset camera if we're not in the delay period
+        if (isInResetDelay) {
+            camera.position.lerp(defaultCameraPosition, blendingFactor);
+            camera.lookAt(0, 0, 0);
+            controls.enabled = true;
+            
+        
+            if (camera.position.distanceTo(defaultCameraPosition) < 0.1) {
+                isInResetDelay = false;
+                projectileRemovedTime = null;
+            }
+        }
+    }
+}
 // Handle window resize
 window.addEventListener('resize', onWindowResize, false);
+
+
+let splash;
+let splashStartTime = null;
+const splashDuration = 1; 
+
+//create splash effect at impact position
+function createSplash(position) {
+
+    if (splash) {
+        scene.remove(splash);
+        splash = null;
+    }
+
+    //small sphere a splash
+    const splashGeometry = new THREE.SphereGeometry(0.3, 16, 16); 
+    const splashMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 1 });
+    splash = new THREE.Mesh(splashGeometry, splashMaterial);
+    
+    //set splash's position to where the cannon hit the water
+    splash.position.copy(position);
+    splash.position.y = water.position.y + 0.1; //slightly above water surface
+    scene.add(splash);
+
+    splashStartTime = clock.getElapsedTime();
+}
+
+// Function to update the splash effect (growing and fading over time)
+function updateSplash() {
+
+    if (splash) 
+    {
+        const elapsed = clock.getElapsedTime() - splashStartTime;
+
+        //grow it -> fade over time
+        splash.scale.set(1 + elapsed, 1 + elapsed, 1 + elapsed); //increase scale over time
+        splash.material.opacity = 1 - (elapsed / splashDuration); //fade out over time
+
+        //remove splash after time elapsed
+        if (elapsed >= splashDuration) {
+            scene.remove(splash);
+            splash = null;
+            splashStartTime = null;
+        }
+    }
+}
+
+// ????????????????????????????? 
+
 
 
 
@@ -371,13 +511,31 @@ function animate() {
         projectile.position.add(projectileVelocity.clone().multiplyScalar(deltaTime));
 
         //if it hits water or goes too far
-        if (projectile.position.y <= water.position.y || 
-            projectile.position.x > 50 || 
-            projectile.position.x < -50) {
+        // if (projectile.position.y <= water.position.y -4|| 
+        //     projectile.position.x > 50 || 
+        //     projectile.position.x < -50) {
+        //     isFiring = false;
+        //     scene.remove(projectile);
+        // }
+
+        if (projectile.position.y <= water.position.y) {
+            createSplash(projectile.position.clone());
+            playSplashSound();
             isFiring = false;
             scene.remove(projectile);
+            projectileRemovedTime = clock.getElapsedTime(); // Store the time when projectile is removed
+        } else if (projectile.position.x > 50 || projectile.position.x < -50) {
+            isFiring = false;
+            scene.remove(projectile);
+            projectileRemovedTime = clock.getElapsedTime(); // Store the time when projectile is removed
         }
+
     }
+
+
+    updateSplash();
+
+    updateCameraPosition(deltaTime);
 
     let time = clock.getElapsedTime();
     raft.position.y = -0.9 + Math.sin(time * 2) * 0.1;
