@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { normalize } from 'three/src/math/MathUtils.js';
 
 
 const scene = new THREE.Scene();
@@ -14,6 +15,9 @@ shootSound.volume = 0.7;
 
 let isFiring = false;
 let projectile;
+const projectileGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
 let initialVelocity = new THREE.Vector3(); //store the initial velocity of the projectile
 let projectileVelocity = new THREE.Vector3();
 const initialSpeed = 15; // Adjust this to change how fast the projectile launches
@@ -214,7 +218,16 @@ const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
 enemyCube2.position.set(15, -0.5, 0);
 scene.add(enemyCube2);
 
+// bounding boxes and spheres for collision
 
+
+let enemyCube1_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+enemyCube1_bb.setFromObject(enemyCube1);
+
+let enemyCube2_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+enemyCube2_bb.setFromObject(enemyCube2);
+
+let cannonball_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 
 // const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 4, 16); // Tall, narrow cylinder for the trunk
 // const trunkMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Brown color for trunk
@@ -305,8 +318,8 @@ const cannonMaterial = new THREE.MeshBasicMaterial({ color: 0xe3300d});
 const cannon = new THREE.Mesh(cannonGeomtry, cannonMaterial);
 scene.add(cannon);
 
-cannon.position.z += .64
-cannon.position.x -= 4.34
+cannon.position.z += .64;
+cannon.position.x -= 4.34;
 
 let cannonAngle = 0;
 
@@ -330,7 +343,8 @@ function fireProjectile(cannonAngle) {
         cannonBasePosition.z
     );
     projectile.position.copy(cannonEndPosition);
-    projectile.position.y += 0.16
+    projectile.position.y += 0.16;
+    projectile.position.z -= 1;
     
     //set initial velocity
     projectileVelocity.set(
@@ -389,11 +403,6 @@ function handleKeyDown(event)
 }
 
 cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
-
-
-window.addEventListener('mousemove', (event) => {
-    mouseY = event.clientY;
-});
 
 window.addEventListener('keydown', handleKeyDown);
 
@@ -491,7 +500,33 @@ function updateSplash() {
     }
 }
 
-// ????????????????????????????? 
+// Function to create collision between cannon ball and enemy
+function collision() {
+
+    cannonball_bb.setFromObject(projectile);
+    // intersect test
+    if (cannonball_bb.intersectsBox(enemyCube2_bb)) {
+        enemyCube2.position.x += 1;
+
+        enemyCube2_bb.setFromObject(enemyCube2);
+    } 
+
+    else if (cannonball_bb.intersectsBox(enemyCube1_bb)) {
+        enemyCube1.position.x += 1;
+
+        enemyCube1_bb.setFromObject(enemyCube1);
+    }
+
+    else if (enemyCube1_bb.intersectsBox(enemyCube2_bb)) {
+        enemyCube1.position.x += 1;
+        enemyCube2.position.x += 4;
+
+        enemyCube1_bb.setFromObject(enemyCube1);
+        enemyCube2_bb.setFromObject(enemyCube2);
+    }
+
+}
+
 
 
 
@@ -528,7 +563,9 @@ function animate() {
             isFiring = false;
             scene.remove(projectile);
             projectileRemovedTime = clock.getElapsedTime(); // Store the time when projectile is removed
-        }
+        } 
+        
+        collision();
 
     }
 
