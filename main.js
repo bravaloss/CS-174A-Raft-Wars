@@ -6,34 +6,66 @@ import { normalize } from 'three/src/math/MathUtils.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera2 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, .01, 500);
+
+camera2.position.set(0,10,0);
+camera2.lookAt(0,0,-10);
+camera2.name = "Minimap";
+
+const createAxisLine = (color, start, end) => {
+    const geometry = new THREE.BufferGeometry().setFromPoints([start, end]);
+    const material = new THREE.LineBasicMaterial({ color: color });
+    return new THREE.Line(geometry, material);
+};
+
+const xAxis = createAxisLine(0xff0000, new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0)); // Red
+const yAxis = createAxisLine(0x00ff00, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0)); // Green
+const zAxis = createAxisLine(0x0000ff, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3)); // Blue
+scene.add(xAxis);
+scene.add(yAxis);
+scene.add(zAxis);
+
+
 // const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87CEEB); //light blue for sky
-const shootSound = new Audio('./public/boom.mp3');
-const splashSound = new Audio('./public/splash.mp3');
+const shootSound = new Audio('/boom.mp3');
+const splashSound = new Audio('/splash.mp3');
 splashSound.volume = 0.1;
 shootSound.volume = 0.7;    
 
 let isFiring = false;
 let projectile;
+let enemyProjectile = null;
 const projectileGeometry = new THREE.SphereGeometry(0.1, 8, 8);
 const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
 projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
+enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
 let initialVelocity = new THREE.Vector3(); //store the initial velocity of the projectile
 let projectileVelocity = new THREE.Vector3();
+let enemyProjectileVelocity = new THREE.Vector3();
 const initialSpeed = 15; // Adjust this to change how fast the projectile launches
 const gravityVector = new THREE.Vector3(0, -9.8, 0); // Gravity as a vector
-
 
 let lastTime = 0;
 let attachedObject = null;
 let cannonAttached = false;
 let cannonPosition = new THREE.Vector3();
-let defaultCameraPosition = new THREE.Vector3(0, 2, 15);
+let defaultCameraPosition = new THREE.Vector3(-5, 0, 9);
 let blendingFactor = 0.02;
 
 let cameraResetDelay = 2; // econds to wait before resetting camera
 let projectileRemovedTime = null; //
 let isInResetDelay = false; //check if we reset camera yet
+let enemyProjectileRemovedTime = null;
+
+
+const enemyFireDelay = 3.8; // 3 seconds delay
+let lastEnemyFireTime = null;
+
+
+let splash;
+let splashStartTime = null;
+const splashDuration = 1; 
 
 
 
@@ -90,6 +122,13 @@ const cannonBasePosition = {
     y: 0,
     z: 0.64
 }
+
+const enemyCannonPosition = {
+    x: 16.44,
+    y: -0.32,
+    z: 0.64
+}
+
 
 function createCloud() {
     const cloudGroup = new THREE.Group();
@@ -158,11 +197,17 @@ scene.add(raft);
 
 // Lighting (optional)
 const light = new THREE.DirectionalLight(0xffffff, 0.8);
-light.position.set(5, 10, 2);
+light.position.set(0, 9, 0).normalize();
 scene.add(light);
 
 // camera.position.z = 5;
-camera.position.set(0, 2, 15);
+// camera.position.set(6, 2, 15);
+
+//below is position for player
+camera.position.set(-5, 0, 9);
+
+//below is position for enemy
+// camera.position.set(18, 0, 9);
 
 raft.position.x = -5
 cube.position.x = -5
@@ -196,26 +241,26 @@ scene.add(island);
 const enemyRaftGeometry1 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
 const enemyRaftMaterial1 = new THREE.MeshBasicMaterial({ color: 0x8B0000 }); // Dark red color
 const enemyRaft1 = new THREE.Mesh(enemyRaftGeometry1, enemyRaftMaterial1);
-enemyRaft1.position.set(12, -0.9, 0);
+enemyRaft1.position.set(17, -0.9, 0);
 scene.add(enemyRaft1);
 
 const enemyCubeGeometry1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 const enemyCubeMaterial1 = new THREE.MeshBasicMaterial({ color: 0x2F4F4F }); // Dark slate gray color
 const enemyCube1 = new THREE.Mesh(enemyCubeGeometry1, enemyCubeMaterial1);
-enemyCube1.position.set(12, -0.5, 0);
+enemyCube1.position.set(17, -0.5, 0);
 scene.add(enemyCube1);
 
 //enemy2 raft
 const enemyRaftGeometry2 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
 const enemyRaftMaterial2 = new THREE.MeshBasicMaterial({ color: 0xFF4500 }); // Orange-red color
 const enemyRaft2 = new THREE.Mesh(enemyRaftGeometry2, enemyRaftMaterial2);
-enemyRaft2.position.set(15, -0.9, 0);
+enemyRaft2.position.set(20, -0.9, 0);
 scene.add(enemyRaft2);
 
 const enemyCubeGeometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 const enemyCubeMaterial2 = new THREE.MeshBasicMaterial({ color: 0x4B0082 }); // Indigo color
 const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
-enemyCube2.position.set(15, -0.5, 0);
+enemyCube2.position.set(20, -0.5, 0);
 scene.add(enemyCube2);
 
 // bounding boxes and spheres for collision
@@ -229,38 +274,20 @@ enemyCube2_bb.setFromObject(enemyCube2);
 
 let cannonball_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 
-// const trunkGeometry = new THREE.CylinderGeometry(0.2, 0.2, 4, 16); // Tall, narrow cylinder for the trunk
-// const trunkMaterial = new THREE.MeshBasicMaterial({ color: 0x8B4513 }); // Brown color for trunk
-// const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-// trunk.position.set(0, 1.5, -40); // Position it on the island
-// scene.add(trunk);
-
-// const leafGeometry = new THREE.ConeGeometry(1.5, 2, 8);
-// const leafMaterial = new THREE.MeshBasicMaterial({ color: 0x228B22 });
-
-// for (let i = 0; i < 4; i++) {
-//     const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
-//     leaf.position.set(0, 3, -40); // Position at the top of the trunk
-//     leaf.rotation.z = (i * Math.PI) / 2; // Rotate each leaf to spread around the trunk
-//     leaf.rotation.x = Math.PI / 4; // Tilt the leaves slightly downward
-//     scene.add(leaf);
-// }
 
 function createPalmFrond() {
     const frondGroup = new THREE.Group();
     
-    // Create the main stem of the frond
     const stemGeometry = new THREE.CylinderGeometry(0.1, 0.05, 8, 8);
     const stemMaterial = new THREE.MeshPhongMaterial({ color: 0x2d5a27 });
     const stem = new THREE.Mesh(stemGeometry, stemMaterial);
     stem.rotation.x = Math.PI / 2.5;
     frondGroup.add(stem);
     
-    // Create individual leaflets along the stem
     const leafletCount = 20;
     const leafletGeometry = new THREE.PlaneGeometry(0.8, 2.5);
     const leafletMaterial = new THREE.MeshPhongMaterial({ 
-        color: 0x3a8335,
+        color: 0x41e811,
         side: THREE.DoubleSide,
         transparent: true,
         opacity: 0.9
@@ -288,7 +315,7 @@ function createPalmTree(trunkHeight = 10, frondsCount = 8) {
     
     //trunk 
     const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.7, trunkHeight, 8);
-    const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0x995c06});
+    const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0xc7a716});
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
     treeGroup.add(trunk);
     
@@ -308,7 +335,7 @@ function createPalmTree(trunkHeight = 10, frondsCount = 8) {
 
 
 const palmTree = createPalmTree(12, 10);
-palmTree.position.set(0, 1.5, -40); // Positioned as requested
+palmTree.position.set(0, 1.5, -40);
 
 scene.add(palmTree);
 
@@ -318,11 +345,52 @@ const cannonMaterial = new THREE.MeshBasicMaterial({ color: 0xe3300d});
 const cannon = new THREE.Mesh(cannonGeomtry, cannonMaterial);
 scene.add(cannon);
 
+const enemyCannon = new THREE.Mesh(cannonGeomtry,  new THREE.MeshBasicMaterial({ color: 0x000000}));
+
+scene.add(enemyCannon);
+
+enemyCannon.position.z += .64;
+enemyCannon.position.x += 16.44;
+enemyCannon.position.y -= 0.32;
 cannon.position.z += .64;
 cannon.position.x -= 4.34;
 
 let cannonAngle = 0;
+let enemyCannonAngle = Math.PI; // Initialize at 180 degrees (pointing opposite direction)
+// let enemyCannonAngle = 0;
+function fireEnemyProjectile(cannonAngle) {
+    // Remove existing projectile if one is already firing
+    if (enemyProjectile) {
+        scene.remove(enemyProjectile);
+    }
 
+    // Create the enemy projectile
+    const projectileGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+    const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+    enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
+
+    const cannonLength = 0.75;
+    const cannonEndPosition = new THREE.Vector3(
+        enemyCannonPosition.x + Math.cos(cannonAngle) * cannonLength,
+        enemyCannonPosition.y + Math.sin(cannonAngle) * cannonLength,
+        enemyCannonPosition.z
+    );
+
+    //initial position of the enemy projectile
+    enemyProjectile.position.copy(cannonEndPosition);
+    enemyProjectile.position.y += 0.16;
+    enemyProjectile.position.z -= 1;
+
+    //initial velocity for the enemy projectile
+    enemyProjectileVelocity.set(
+        Math.cos(cannonAngle) * initialSpeed,
+        Math.sin(cannonAngle) * initialSpeed,
+        0
+    );
+
+    // Add the enemy projectile to the scene
+    scene.add(enemyProjectile);
+}
 function fireProjectile(cannonAngle) {
     
     //remove existing projectile if one is already firing
@@ -368,22 +436,28 @@ function handleKeyDown(event)
     //arrow keys to aim cannon
     if (event.key === 'ArrowUp') {
         cannonAngle = Math.min(cannonAngle + rotationSpeed, Math.PI / 2);
+        enemyCannonAngle = Math.PI -   cannonAngle;
     } 
     else if (event.key === 'ArrowDown') 
     {
         cannonAngle = Math.max(cannonAngle - rotationSpeed, 0);
+        enemyCannonAngle = Math.PI - cannonAngle;
     } 
     //space bar to shoot
     else if (event.key === ' ') 
     { 
         fireProjectile(cannonAngle);
+        // fireEnemyProjectile(enemyCannonAngle);
         playShootSound();
         cannonPosition.copy(cannon.position); //store cannon position
         cannonAttached = true;
+
+        lastEnemyFireTime = clock.getElapsedTime();
     }
 
     //reset cannon position and apply transformations for pivot rotation
     cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
+    enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
     const pivotX = -0.75;
     const pivotZ = -0.125;
 
@@ -398,8 +472,30 @@ function handleKeyDown(event)
         .multiply(rotation)
         .multiply(toOrigin);
 
+    const enemyPivotX = 0.75;  // Positive to flip the pivot point
+    const enemyToOrigin = translationMatrix(-enemyPivotX, 0, -pivotZ);
+    const enemyRotation = new THREE.Matrix4().multiply(
+        rotationMatrixZ(enemyCannonAngle)
+    ).multiply(
+        rotationMatrixY(Math.PI)  // Rotate 180 around Y axis to face the opposite direction
+    );
+    const enemyFromOrigin = translationMatrix(enemyPivotX, 0, pivotZ);
+    const enemyToPosition = translationMatrix(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
+
+    const enemyFinalMatrix = new THREE.Matrix4()
+        .multiply(enemyToPosition)
+        .multiply(enemyFromOrigin)
+        .multiply(enemyRotation)
+        .multiply(enemyToOrigin);
+
+
     cannon.matrix.copy(finalMatrix);
     cannon.matrixAutoUpdate = false;
+    // enemyCannon.matrix.copy(finalMatrix);
+    // enemyCannon.matrixAutoUpdate = false;
+
+    enemyCannon.matrix.copy(enemyFinalMatrix);
+    enemyCannon.matrixAutoUpdate = false;
 }
 
 cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
@@ -415,6 +511,13 @@ function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
+
+    insetWidth = window.innerHeight / 4;
+    insetHeight = window.innerWidth / 4;
+
+    camera2.aspect = insetWidth / insetHeight;
+    camera2.updateProjectionMatrix();
+
 }
 
 function updateCameraPosition(deltaTime) {
@@ -432,21 +535,41 @@ function updateCameraPosition(deltaTime) {
         camera.lookAt(projectile.position);
         controls.enabled = false;
         isInResetDelay = false; //reset delay flag
-    } else if (projectileRemovedTime && currentTime - projectileRemovedTime < cameraResetDelay) {
+
+    }
+    
+    else if (enemyProjectile) {
+        let cameraPosition = new THREE.Vector3(
+            enemyProjectile.position.x,
+            enemyProjectile.position.y + 2,
+            enemyProjectile.position.z + 10
+        );
+
+        camera.position.lerp(cameraPosition, blendingFactor);
+        camera.lookAt(enemyProjectile.position);
+        controls.enabled = false;
+        isInResetDelay = false;
+    } 
+
+    else if (projectileRemovedTime && currentTime - projectileRemovedTime < cameraResetDelay) {
         //keep camera in last position during delay until we reset view
         controls.enabled = false;
         isInResetDelay = true;
     } else {
         //only reset camera if we're not in the delay period
-        if (isInResetDelay) {
-            camera.position.lerp(defaultCameraPosition, blendingFactor);
-            camera.lookAt(0, 0, 0);
+        if (isInResetDelay) 
+        {
+            // camera.position.lerp(defaultCameraPosition, blendingFactor);
+            camera.position.lerp(cameraPosition, blendingFactor);
+            camera.lookAt(0,0,0);
             controls.enabled = true;
             
         
-            if (camera.position.distanceTo(defaultCameraPosition) < 0.1) {
+            if (camera.position.distanceTo(defaultCameraPosition) < 0.1) 
+            {
                 isInResetDelay = false;
                 projectileRemovedTime = null;
+                enemyProjectileRemovedTime = null; 
             }
         }
     }
@@ -455,9 +578,6 @@ function updateCameraPosition(deltaTime) {
 window.addEventListener('resize', onWindowResize, false);
 
 
-let splash;
-let splashStartTime = null;
-const splashDuration = 1; 
 
 //create splash effect at impact position
 function createSplash(position) {
@@ -527,8 +647,8 @@ function collision() {
 
 }
 
-
-
+camera.add(camera2);
+scene.add(camera);
 
 
 function animate() {
@@ -538,45 +658,56 @@ function animate() {
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
 
+    //update player projectile
     if (isFiring && projectile) {
-        //velocity (v = v0 + at)
+        //change velocity wrt gravity
         projectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
-        
-        // 
+        //update projectile position
         projectile.position.add(projectileVelocity.clone().multiplyScalar(deltaTime));
 
-        //if it hits water or goes too far
-        // if (projectile.position.y <= water.position.y -4|| 
-        //     projectile.position.x > 50 || 
-        //     projectile.position.x < -50) {
-        //     isFiring = false;
-        //     scene.remove(projectile);
-        // }
-
+        //check for collision with water or if it goes out of screen
         if (projectile.position.y <= water.position.y) {
             createSplash(projectile.position.clone());
             playSplashSound();
             isFiring = false;
             scene.remove(projectile);
-            projectileRemovedTime = clock.getElapsedTime(); // Store the time when projectile is removed
-        } else if (projectile.position.x > 50 || projectile.position.x < -50) {
-            isFiring = false;
-            scene.remove(projectile);
-            projectileRemovedTime = clock.getElapsedTime(); // Store the time when projectile is removed
-        } 
+            projectileRemovedTime = clock.getElapsedTime();
+        }
         
         collision();
-
     }
 
+    // Update enemy's projectile
+    if (enemyProjectile) {
+        // Update enemy projectile velocity with gravity
+        enemyProjectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
+        // Update enemy projectile position
+        enemyProjectile.position.add(enemyProjectileVelocity.clone().multiplyScalar(deltaTime));
+
+        // Check if enemy projectile hits water or boundaries
+        if (enemyProjectile.position.y <= water.position.y) {
+            createSplash(enemyProjectile.position.clone());
+            playSplashSound();
+            scene.remove(enemyProjectile);
+            enemyProjectile = null; 
+            enemyProjectileRemovedTime = clock.getElapsedTime(); 
+        } 
+        
+    }
+
+    //its the enemys turn to shoot
+    if (enemyProjectile === null && lastEnemyFireTime !== null && clock.getElapsedTime() - lastEnemyFireTime >= enemyFireDelay) {
+        fireEnemyProjectile(enemyCannonAngle);
+        playShootSound();
+        lastEnemyFireTime = null; // Reset the last fire time
+    }
 
     updateSplash();
-
-    updateCameraPosition(deltaTime);
 
     let time = clock.getElapsedTime();
     raft.position.y = -0.9 + Math.sin(time * 2) * 0.1;
     raft2.position.y = -0.9 + Math.sin(time * 6) * 0.1;
+    updateCameraPosition(deltaTime);
 
     renderer.render(scene, camera);
 }
