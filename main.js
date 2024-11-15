@@ -188,6 +188,34 @@ water.rotation.x = -Math.PI / 2; //makes the water horizontal
 water.position.y = -1; //lowers water
 scene.add(water);
 
+// health bars
+// big bro health bar
+const healthBarGeometry = new THREE.BoxGeometry( 1.8, 0.3, 1 ); 
+const healthBarMaterial = new THREE.MeshBasicMaterial( {color: 0x228B22} ); 
+const healthBar = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar);
+healthBar.position.x = -5;
+healthBar.position.y = 1.8;
+
+// little bro health bar
+const healthBar2 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar2);
+healthBar2.position.x = -7;
+healthBar2.position.y = 1.8;
+
+// enemy 1 health bar
+const healthBar3 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar3);
+healthBar3.position.x = 17;
+healthBar3.position.y = 1.8;
+
+// enemy 2 health bar
+const healthBar4 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar4);
+healthBar4.position.x = 20;
+healthBar4.position.y = 1.8;
+
+
 //first raft
 const raftGeometry = new THREE.BoxGeometry(2, 0.2, 2);
 const raftMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
