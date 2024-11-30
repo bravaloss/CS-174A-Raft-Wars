@@ -188,6 +188,33 @@ water.rotation.x = -Math.PI / 2; //makes the water horizontal
 water.position.y = -1; //lowers water
 scene.add(water);
 
+// health bars
+// big bro health bar
+const healthBarGeometry = new THREE.BoxGeometry( 1.8, 0.3, 1 ); 
+const healthBarMaterial = new THREE.MeshBasicMaterial( {color: 0x228B22} ); 
+const healthBar1 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar1);
+healthBar1.position.x = -5;
+healthBar1.position.y = 1.8;
+
+// little bro health bar
+const healthBar2 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar2);
+healthBar2.position.x = -7;
+healthBar2.position.y = 1.8;
+
+// enemy 1 health bar
+const healthBar3 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar3);
+healthBar3.position.x = 17;
+healthBar3.position.y = 1.8;
+
+// enemy 2 health bar
+const healthBar4 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+scene.add(healthBar4);
+healthBar4.position.x = 20;
+healthBar4.position.y = 1.8;
+
 //first raft
 const raftGeometry = new THREE.BoxGeometry(2, 0.2, 2);
 const raftMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
@@ -263,9 +290,9 @@ const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
 enemyCube2.position.set(20, -0.5, 0);
 scene.add(enemyCube2);
 
-// bounding boxes and spheres for collision
+// bounding boxes for collision
 
-
+// bounding box bro to enemy
 let enemyCube1_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 enemyCube1_bb.setFromObject(enemyCube1);
 
@@ -273,6 +300,19 @@ let enemyCube2_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 enemyCube2_bb.setFromObject(enemyCube2);
 
 let cannonball_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+cannonball_bb.setFromObject(projectile);
+
+
+// bounding box enemy to bro
+let cube_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+cube_bb.setFromObject(cube);
+
+let whiteCube_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+whiteCube_bb.setFromObject(whiteCube); // Initialize with whiteCube object
+
+let enemyCannonball_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+enemyCannonball_bb.setFromObject(enemyProjectile);
+
 
 
 function createPalmFrond() {
@@ -315,7 +355,7 @@ function createPalmTree(trunkHeight = 10, frondsCount = 8) {
     
     //trunk 
     const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.7, trunkHeight, 8);
-    const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0xc7a716});
+    const trunkMaterial = new THREE.MeshPhongMaterial({ color: 0xb59842});
     const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
     treeGroup.add(trunk);
     
@@ -349,7 +389,7 @@ const enemyCannon = new THREE.Mesh(cannonGeomtry,  new THREE.MeshBasicMaterial({
 
 scene.add(enemyCannon);
 
-enemyCannon.position.z += .64;
+enemyCannon.position.z += .73;
 enemyCannon.position.x += 16.44;
 enemyCannon.position.y -= 0.32;
 cannon.position.z += .64;
@@ -379,7 +419,7 @@ function fireEnemyProjectile(cannonAngle) {
     //initial position of the enemy projectile
     enemyProjectile.position.copy(cannonEndPosition);
     enemyProjectile.position.y += 0.16;
-    enemyProjectile.position.z -= 1;
+    enemyProjectile.position.z -= 0.5;
 
     //initial velocity for the enemy projectile
     enemyProjectileVelocity.set(
@@ -559,7 +599,7 @@ function updateCameraPosition(deltaTime) {
         //only reset camera if we're not in the delay period
         if (isInResetDelay) 
         {
-            // camera.position.lerp(defaultCameraPosition, blendingFactor);
+            camera.position.lerp(defaultCameraPosition, blendingFactor);
             camera.position.lerp(cameraPosition, blendingFactor);
             camera.lookAt(0,0,0);
             controls.enabled = true;
@@ -623,16 +663,26 @@ function updateSplash() {
 // Function to create collision between cannon ball and enemy
 function collision() {
 
-    cannonball_bb.setFromObject(projectile);
+    if (projectile) {
+        cannonball_bb.setFromObject(projectile);
+    }
+    if (enemyProjectile) {
+        enemyCannonball_bb.setFromObject(enemyProjectile);
+    }
+    cube_bb.setFromObject(cube);
+
     // intersect test
-    if (cannonball_bb.intersectsBox(enemyCube2_bb)) {
+    if (projectile && cannonball_bb.intersectsBox(enemyCube2_bb)) {
         enemyCube2.position.x += 1;
+        healthBar4.position.x += 1;
+
 
         enemyCube2_bb.setFromObject(enemyCube2);
     } 
 
-    else if (cannonball_bb.intersectsBox(enemyCube1_bb)) {
+    else if (projectile && cannonball_bb.intersectsBox(enemyCube1_bb)) {
         enemyCube1.position.x += 1;
+        healthBar3.position.x += 1
 
         enemyCube1_bb.setFromObject(enemyCube1);
     }
@@ -640,11 +690,69 @@ function collision() {
     else if (enemyCube1_bb.intersectsBox(enemyCube2_bb)) {
         enemyCube1.position.x += 1;
         enemyCube2.position.x += 4;
+        healthBar3.position.x += 1;
+        healthBar4.position.x += 4;
 
         enemyCube1_bb.setFromObject(enemyCube1);
         enemyCube2_bb.setFromObject(enemyCube2);
     }
 
+}
+
+function enemyCollision() {
+
+    //bounding boxes for the enemy projectile and player's assets
+    let enemyProjectile_bb = new THREE.Box3().setFromObject(enemyProjectile);
+    let raft_bb = new THREE.Box3().setFromObject(raft);
+    let cube_bb = new THREE.Box3().setFromObject(cube);
+    let whiteCube_bb = new THREE.Box3().setFromObject(whiteCube); //second cube
+
+    //checking collision with big cube
+    if (enemyProjectile_bb.intersectsBox(cube_bb)) {
+        console.log("Enemy projectile hit the big cube!");
+
+        //move big bro back
+        cube.position.x -= 1;
+        healthBar1.position.x -= 1;
+
+        //update the big cube's bounding box
+        cube_bb.setFromObject(cube);
+
+        
+        scene.remove(enemyProjectile);
+        enemyProjectile = null;
+
+        // after moving the big cube, check for collision with the second cube
+        if (cube_bb.intersectsBox(whiteCube_bb)) {
+            console.log("Big cube collided with the second cube!");
+
+            whiteCube.position.x -= 1;
+            healthBar2.position.x -= 1;
+
+            //update the second cube's bounding box
+            whiteCube_bb.setFromObject(whiteCube);
+        }
+    } 
+    //collision with second box
+    else if (enemyProjectile_bb.intersectsBox(whiteCube_bb)) {
+        console.log("Enemy projectile hit the second bro!");
+        whiteCube.position.x -= 1;
+        healthBar2.position.x -= 1;
+
+
+        //update the second cube's bounding box
+        whiteCube_bb.setFromObject(whiteCube);
+        scene.remove(enemyProjectile);
+        enemyProjectile = null;
+    }
+    //check for collision with the raft
+    else if (enemyProjectile_bb.intersectsBox(raft_bb)) {
+        console.log("Enemy projectile hit the raft!");
+
+        //remove the enemy projectile
+        scene.remove(enemyProjectile);
+        enemyProjectile = null;
+    }
 }
 
 camera.add(camera2);
@@ -675,11 +783,13 @@ function animate() {
         }
         
         collision();
+        
     }
 
     // Update enemy's projectile
     if (enemyProjectile) {
         // Update enemy projectile velocity with gravity
+        enemyCollision();
         enemyProjectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
         // Update enemy projectile position
         enemyProjectile.position.add(enemyProjectileVelocity.clone().multiplyScalar(deltaTime));
@@ -699,7 +809,7 @@ function animate() {
     if (enemyProjectile === null && lastEnemyFireTime !== null && clock.getElapsedTime() - lastEnemyFireTime >= enemyFireDelay) {
         fireEnemyProjectile(enemyCannonAngle);
         playShootSound();
-        lastEnemyFireTime = null; // Reset the last fire time
+        lastEnemyFireTime = null; 
     }
 
     updateSplash();
