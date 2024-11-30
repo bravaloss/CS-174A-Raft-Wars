@@ -215,6 +215,7 @@ scene.add(healthBar4);
 healthBar4.position.x = 20;
 healthBar4.position.y = 1.8;
 
+
 //first raft
 const raftGeometry = new THREE.BoxGeometry(2, 0.2, 2);
 const raftMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFF00 });
