@@ -1,0 +1,11 @@
+Model Information:
+* title:	Raft
+* source:	https://sketchfab.com/3d-models/raft-07b4974fd6ca434fbbec3144ad67d1f8
+* author:	Sinci1 (https://sketchfab.com/sinci1772)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Raft" (https://sketchfab.com/3d-models/raft-07b4974fd6ca434fbbec3144ad67d1f8) by Sinci1 (https://sketchfab.com/sinci1772) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

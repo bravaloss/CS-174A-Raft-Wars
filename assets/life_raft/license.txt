@@ -1,0 +1,11 @@
+Model Information:
+* title:	Life raft
+* source:	https://sketchfab.com/3d-models/life-raft-9c5d8ac17cec443ca199c2501a9ff679
+* author:	millernathan472 (https://sketchfab.com/millernathan472)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Life raft" (https://sketchfab.com/3d-models/life-raft-9c5d8ac17cec443ca199c2501a9ff679) by millernathan472 (https://sketchfab.com/millernathan472) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
