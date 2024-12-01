@@ -1,0 +1,11 @@
+Model Information:
+* title:	Raft by Henri
+* source:	https://sketchfab.com/3d-models/raft-by-henri-9cee65228d8f435dbd6dfd6ef900ccba
+* author:	Gravity Sketch (https://sketchfab.com/gravitysketch)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Raft by Henri" (https://sketchfab.com/3d-models/raft-by-henri-9cee65228d8f435dbd6dfd6ef900ccba) by Gravity Sketch (https://sketchfab.com/gravitysketch) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

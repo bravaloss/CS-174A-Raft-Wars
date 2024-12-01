@@ -2,11 +2,106 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { normalize } from 'three/src/math/MathUtils.js';
-
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const camera2 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, .01, 500);
+const loader = new GLTFLoader();
+
+loader.load('./assets/raft_by_henri/scene.gltf',
+    function ( gltf ) {
+        scene.add( gltf.scene );
+        scene.remove(raft);
+        gltf.scene.position.set(-5, -0.5, 0);
+
+        // gltf.scene.rotation.z = -Math.PI / 2;
+
+        gltf.scene.rotation.y = Math.PI / 2; 
+        // gltf.scene.rotation.x = -Math.PI / 4; // Tilt up 45 degrees
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        //swaying animation
+        const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            gltf.scene.position.y = -0.2 + Math.sin(time * 2) * 0.1;
+            originalAnimate();
+        }
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
+//enemy raft 1 gltf  17, -0.9, 0
+loader.load('./assets/jangada_de_bambu_bamboo_raft/scene.gltf',
+    function ( gltf ) {
+        scene.add( gltf.scene );
+        scene.remove(enemyRaft1);
+        gltf.scene.position.set(17, -.8, -.5);
+        gltf.scene.scale.set(0.1, 0.1, 0.1);
+
+        // gltf.scene.rotation.z = -Math.PI / 2;
+
+        // gltf.scene.rotation.y = Math.PI / 2; 
+        // gltf.scene.rotation.x = -Math.PI / 4; // Tilt up 45 degrees
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        //swaying animation
+        const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            gltf.scene.position.y = -.8 + Math.sin(time * 2) * 0.1;
+            originalAnimate();
+        }
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
+loader.load('./assets/raft/scene.gltf',
+    function ( gltf ) {
+        scene.add( gltf.scene );
+        scene.remove(raft);
+        gltf.scene.position.set(-6, -0.9, 0)
+        gltf.scene.scale(0.5,0.3,0.5);
+
+        // Rotate the raft 90 degrees around the Y-axis and tilt it up 45 degrees
+        // gltf.scene.rotation.z = -Math.PI / 2;
+
+        gltf.scene.rotation.y = Math.PI / 2; 
+        // gltf.scene.rotation.x = -Math.PI / 4; // Tilt up 45 degrees
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        // Add swaying animation in the animate function
+        const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            gltf.scene.position.y = -0.2 + Math.sin(time * 2) * 0.1;
+            originalAnimate();
+        }
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 camera2.position.set(0,10,0);
 camera2.lookAt(0,0,-10);
@@ -21,9 +116,9 @@ const createAxisLine = (color, start, end) => {
 const xAxis = createAxisLine(0xff0000, new THREE.Vector3(0, 0, 0), new THREE.Vector3(3, 0, 0)); // Red
 const yAxis = createAxisLine(0x00ff00, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 3, 0)); // Green
 const zAxis = createAxisLine(0x0000ff, new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, 3)); // Blue
-scene.add(xAxis);
-scene.add(yAxis);
-scene.add(zAxis);
+// scene.add(xAxis);
+// scene.add(yAxis);
+// scene.add(zAxis);
 
 
 // const scene = new THREE.Scene();
@@ -43,17 +138,25 @@ enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
 let initialVelocity = new THREE.Vector3(); //store the initial velocity of the projectile
 let projectileVelocity = new THREE.Vector3();
 let enemyProjectileVelocity = new THREE.Vector3();
-const initialSpeed = 15; // Adjust this to change how fast the projectile launches
+let initialSpeed = 15; // Initial speed of the projectile
+const MIN_SPEED = 5;   // Minimum speed limit
+const MAX_SPEED = 25;  // Maximum speed limit
+const SPEED_INCREMENT = 1; // How much speed changes per key press
 const gravityVector = new THREE.Vector3(0, -9.8, 0); // Gravity as a vector
+let isEnemyProjectileActive = false;
 
 let lastTime = 0;
 let attachedObject = null;
 let cannonAttached = false;
 let cannonPosition = new THREE.Vector3();
 let defaultCameraPosition = new THREE.Vector3(-5, 0, 9);
+// let defaultCameraPosition = new THREE.Vector3(18.5, 0, 9);
+const enemyDefaultCameraPosition = new THREE.Vector3(18.5, 0, 9); // Enemy's default camera position
+const enemyDefaultCameraRotation = new THREE.Euler(); // Clone to store initial rotation for enemy
+
 let blendingFactor = 0.02;
 
-let cameraResetDelay = 2; // econds to wait before resetting camera
+let cameraResetDelay = 3.7; // econds to wait before resetting camera
 let projectileRemovedTime = null; //
 let isInResetDelay = false; //check if we reset camera yet
 let enemyProjectileRemovedTime = null;
@@ -66,6 +169,7 @@ let lastEnemyFireTime = null;
 let splash;
 let splashStartTime = null;
 const splashDuration = 1; 
+
 
 
 
@@ -302,6 +406,18 @@ enemyCube2_bb.setFromObject(enemyCube2);
 
 let cannonball_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 
+// bounding box enemy to bro
+let cube_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+cube_bb.setFromObject(cube);
+
+let whiteCube_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+whiteCube_bb.setFromObject(whiteCube); // Initialize with whiteCube object
+
+let enemyCannonball_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
+enemyCannonball_bb.setFromObject(enemyProjectile);
+
+
+
 
 function createPalmFrond() {
     const frondGroup = new THREE.Group();
@@ -377,22 +493,25 @@ const enemyCannon = new THREE.Mesh(cannonGeomtry,  new THREE.MeshBasicMaterial({
 
 scene.add(enemyCannon);
 
-enemyCannon.position.z += .64;
+enemyCannon.position.z += .73;
 enemyCannon.position.x += 16.44;
 enemyCannon.position.y -= 0.32;
 cannon.position.z += .64;
 cannon.position.x -= 4.34;
 
 let cannonAngle = 0;
-let enemyCannonAngle = Math.PI; // Initialize at 180 degrees (pointing opposite direction)
+let enemyCannonAngle = Math.PI; //pointing the opposite direction
 // let enemyCannonAngle = 0;
+//function which has the enemy shoot a projectile at a calculated angle based on the distance between the player and the enemy, with a randomized element
+
+
 function fireEnemyProjectile(cannonAngle) {
-    // Remove existing projectile if one is already firing
+    
     if (enemyProjectile) {
         scene.remove(enemyProjectile);
     }
 
-    // Create the enemy projectile
+    //create enmy projectile
     const projectileGeometry = new THREE.SphereGeometry(0.1, 8, 8);
     const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
     enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
@@ -404,21 +523,25 @@ function fireEnemyProjectile(cannonAngle) {
         enemyCannonPosition.z
     );
 
-    //initial position of the enemy projectile
+    // Initial position of the enemy projectile
     enemyProjectile.position.copy(cannonEndPosition);
     enemyProjectile.position.y += 0.16;
     enemyProjectile.position.z -= 1;
 
-    //initial velocity for the enemy projectile
+    const speed = 10000000000;
+
+    //
     enemyProjectileVelocity.set(
         Math.cos(cannonAngle) * initialSpeed,
         Math.sin(cannonAngle) * initialSpeed,
         0
     );
 
-    // Add the enemy projectile to the scene
+
     scene.add(enemyProjectile);
 }
+
+
 function fireProjectile(cannonAngle) {
     
     //remove existing projectile if one is already firing
@@ -454,7 +577,42 @@ function fireProjectile(cannonAngle) {
     lastTime = clock.getElapsedTime();
 }
 
+//function that calculates radians from degree  
+function deg2rad(degrees) {
+    return degrees * Math.PI / 180;
+}
 
+//function that calculates the angle the enemy cannon should shoot at
+function calculateEnemyCannonAngle() {
+    const deltaX = cannon.position.x - enemyCannon.position.x;
+    const deltaY = cannon.position.y - enemyCannon.position.y;
+    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+
+    const g = 9.8;
+    const vSquared = initialSpeed * initialSpeed;
+    const sin2Theta = (g * distance) / vSquared;
+
+    const clampedSin2Theta = Math.max(-1, Math.min(1, sin2Theta));
+    const baseAngle = Math.asin(clampedSin2Theta) / 2;
+
+    const randomOffset = (Math.random() - 0.5) * deg2rad(15); //random +- 15 degrees offset
+    return Math.PI - Math.max(0, Math.min(Math.PI / 2, baseAngle + randomOffset));
+}
+
+
+let isEnemyPreparingToShoot = false; 
+let enemyShootStartTime = null; 
+
+let isEnemyRotating = false; 
+let enemyTargetAngle = null; //target angle for rotation
+
+// Handle key down events
+
+const powerDisplay = document.getElementById('powerDisplay');
+
+function updatePowerDisplay(power) {
+    powerDisplay.textContent = `Power: ${power}`;
+}
 
 
 function handleKeyDown(event) 
@@ -464,25 +622,43 @@ function handleKeyDown(event)
     //arrow keys to aim cannon
     if (event.key === 'ArrowUp') {
         cannonAngle = Math.min(cannonAngle + rotationSpeed, Math.PI / 2);
-        enemyCannonAngle = Math.PI -   cannonAngle;
+        // enemyCannonAngle = Math.PI -   cannonAngle;
     } 
     else if (event.key === 'ArrowDown') 
     {
         cannonAngle = Math.max(cannonAngle - rotationSpeed, 0);
-        enemyCannonAngle = Math.PI - cannonAngle;
+        // enemyCannonAngle = Math.PI - cannonAngle;
     } 
     //space bar to shoot
-    else if (event.key === ' ') 
-    { 
+    else if (event.key === ' ') { 
         fireProjectile(cannonAngle);
-        // fireEnemyProjectile(enemyCannonAngle);
         playShootSound();
-        cannonPosition.copy(cannon.position); //store cannon position
+        cannonPosition.copy(cannon.position);
         cannonAttached = true;
-
+    
         lastEnemyFireTime = clock.getElapsedTime();
+        isEnemyPreparingToShoot = true; // Enemy starts preparing
+        enemyShootStartTime = clock.getElapsedTime();
+    
+        // Set the target angle for the enemy cannon and start rotation
+        enemyTargetAngle = calculateEnemyCannonAngle();
+        // isEnemyRotating = true;
     }
+    //arrow keys to set power
+    else if (event.key === 'ArrowRight') {
+        //increase initial speed unless beyond max speed
+        initialSpeed = Math.min(initialSpeed + SPEED_INCREMENT, MAX_SPEED);
+        console.log(`Projectile Speed: ${initialSpeed}`);
+        updatePowerDisplay(initialSpeed);
 
+    }
+    else if (event.key === 'ArrowLeft') {
+        initialSpeed = Math.max(initialSpeed - SPEED_INCREMENT, MIN_SPEED);
+        console.log(`Projectile Speed: ${initialSpeed}`);
+        updatePowerDisplay(initialSpeed);
+
+    }
+    
     //reset cannon position and apply transformations for pivot rotation
     cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
     enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
@@ -528,7 +704,7 @@ function handleKeyDown(event)
 
 cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
 
-window.addEventListener('keydown', handleKeyDown);
+
 
 //projectile equations:
 // x = xi + vx*t
@@ -548,58 +724,61 @@ function onWindowResize() {
 
 }
 
+// const defaultCameraPosition = new THREE.Vector3(-5, 0, 9);
+const defaultCameraRotation = camera.rotation.clone(); // Clone to store initial rotation
+
 function updateCameraPosition(deltaTime) {
     const currentTime = clock.getElapsedTime();
 
     if (isFiring && projectile) {
+        const fixedZPosition = defaultCameraPosition.z; //keep z-position constant
+        const yOffset = 2;        
+        const cameraPosition = new THREE.Vector3(
+            projectile.position.x + 10,             //follows parallel to projectile
+            projectile.position.y + yOffset - 1.5,   
+            fixedZPosition                  
+        );
+
+        //camera towards the new position without changing its rotation
+        camera.position.lerp(cameraPosition, blendingFactor);
+
         
-        let cameraPosition = new THREE.Vector3(
-            projectile.position.x,
-            projectile.position.y + 2,
-            projectile.position.z + 10
-        );
+        camera.rotation.copy(defaultCameraRotation);
 
-        camera.position.lerp(cameraPosition, blendingFactor);
-        camera.lookAt(projectile.position);
-        controls.enabled = false;
-        isInResetDelay = false; //reset delay flag
-
-    }
-    
-    else if (enemyProjectile) {
-        let cameraPosition = new THREE.Vector3(
-            enemyProjectile.position.x,
-            enemyProjectile.position.y + 2,
-            enemyProjectile.position.z + 10
-        );
-
-        camera.position.lerp(cameraPosition, blendingFactor);
-        camera.lookAt(enemyProjectile.position);
+        
         controls.enabled = false;
         isInResetDelay = false;
-    } 
+    }
+    else if (enemyProjectile) {
+        const fixedZPosition = defaultCameraPosition.z; 
+        const yOffset = 2;        
+        const cameraPosition = new THREE.Vector3(
+            enemyProjectile.position.x,            
+            enemyProjectile.position.y + yOffset,  
+            fixedZPosition                         
+        );
 
+        camera.position.lerp(cameraPosition, blendingFactor);
+
+        //
+        camera.rotation.copy(defaultCameraRotation);
+
+        
+        controls.enabled = false;
+        isInResetDelay = false;
+    }
     else if (projectileRemovedTime && currentTime - projectileRemovedTime < cameraResetDelay) {
-        //keep camera in last position during delay until we reset view
+        //lerp the camera to the enemy's position
+        camera.position.lerp(enemyDefaultCameraPosition, blendingFactor);
+        camera.rotation.copy(enemyDefaultCameraRotation);
         controls.enabled = false;
         isInResetDelay = true;
-    } else {
-        //only reset camera if we're not in the delay period
-        if (isInResetDelay) 
-        {
-            // camera.position.lerp(defaultCameraPosition, blendingFactor);
-            camera.position.lerp(cameraPosition, blendingFactor);
-            camera.lookAt(0,0,0);
-            controls.enabled = true;
-            
-        
-            if (camera.position.distanceTo(defaultCameraPosition) < 0.1) 
-            {
-                isInResetDelay = false;
-                projectileRemovedTime = null;
-                enemyProjectileRemovedTime = null; 
-            }
-        }
+    } 
+    else {
+        camera.position.lerp(defaultCameraPosition, blendingFactor);
+        camera.rotation.copy(defaultCameraRotation);
+        controls.enabled = true;
+        isInResetDelay = false;
     }
 }
 // Handle window resize
@@ -651,16 +830,26 @@ function updateSplash() {
 // Function to create collision between cannon ball and enemy
 function collision() {
 
-    cannonball_bb.setFromObject(projectile);
+    if (projectile) {
+        cannonball_bb.setFromObject(projectile);
+    }
+    if (enemyProjectile) {
+        enemyCannonball_bb.setFromObject(enemyProjectile);
+    }
+    cube_bb.setFromObject(cube);
+
     // intersect test
-    if (cannonball_bb.intersectsBox(enemyCube2_bb)) {
+    if (projectile && cannonball_bb.intersectsBox(enemyCube2_bb)) {
         enemyCube2.position.x += 1;
+        healthBar4.position.x += 1;
+
 
         enemyCube2_bb.setFromObject(enemyCube2);
     } 
 
-    else if (cannonball_bb.intersectsBox(enemyCube1_bb)) {
+    else if (projectile && cannonball_bb.intersectsBox(enemyCube1_bb)) {
         enemyCube1.position.x += 1;
+        healthBar3.position.x += 1
 
         enemyCube1_bb.setFromObject(enemyCube1);
     }
@@ -668,6 +857,8 @@ function collision() {
     else if (enemyCube1_bb.intersectsBox(enemyCube2_bb)) {
         enemyCube1.position.x += 1;
         enemyCube2.position.x += 4;
+        healthBar3.position.x += 1;
+        healthBar4.position.x += 4;
 
         enemyCube1_bb.setFromObject(enemyCube1);
         enemyCube2_bb.setFromObject(enemyCube2);
@@ -675,25 +866,176 @@ function collision() {
 
 }
 
+function enemyCollision() {
+
+    //bounding boxes for the enemy projectile and player's assets
+    let enemyProjectile_bb = new THREE.Box3().setFromObject(enemyProjectile);
+    let raft_bb = new THREE.Box3().setFromObject(raft);
+    let cube_bb = new THREE.Box3().setFromObject(cube);
+    let whiteCube_bb = new THREE.Box3().setFromObject(whiteCube); //second cube
+
+    //checking collision with big cube
+    if (enemyProjectile_bb.intersectsBox(cube_bb)) {
+        console.log("Enemy projectile hit the big cube!");
+
+        //move big bro back
+        cube.position.x -= 1;
+        healthBar.position.x -= 1;
+
+        //update the big cube's bounding box
+        cube_bb.setFromObject(cube);
+
+        
+        scene.remove(enemyProjectile);
+        enemyProjectile = null;
+
+        // after moving the big cube, check for collision with the second cube
+        if (cube_bb.intersectsBox(whiteCube_bb)) {
+            console.log("Big cube collided with the second cube!");
+
+            whiteCube.position.x -= 1;
+            healthBar2.position.x -= 1;
+
+            //update the second cube's bounding box
+            whiteCube_bb.setFromObject(whiteCube);
+        }
+    } 
+    //collision with second box
+    else if (enemyProjectile_bb.intersectsBox(whiteCube_bb)) {
+        console.log("Enemy projectile hit the second bro!");
+        whiteCube.position.x -= 1;
+        healthBar2.position.x -= 1;
+
+
+        //update the second cube's bounding box
+        whiteCube_bb.setFromObject(whiteCube);
+        scene.remove(enemyProjectile);
+        enemyProjectile = null;
+    }
+    //check for collision with the raft
+    else if (enemyProjectile_bb.intersectsBox(raft_bb)) {
+        console.log("Enemy projectile hit the raft!");
+
+        //remove the enemy projectile
+        scene.remove(enemyProjectile);
+        enemyProjectile = null;
+    }
+}
+
 camera.add(camera2);
 scene.add(camera);
 
+// Dotted path for the projectile
+const dotMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 0.2 });
+
+
+const dotGeometry = new THREE.BufferGeometry();
+const dotPath = new THREE.Points(dotGeometry, dotMaterial);
+scene.add(dotPath);
+
+function calculateCondensedPath(startPosition, angle, speed, numDots = 5) {
+    const points = [];
+    const gravity = -9.8; 
+    const timeStep = 0.1;//time step for each dot
+  
+
+    let t = 0;
+    for (let i = 0; i < numDots; i++) {
+        t += timeStep; //increment time for each dot
+        const x = startPosition.x + speed * Math.cos(angle) * t;
+        const y = startPosition.y + speed * Math.sin(angle) * t + 0.5 * gravity * t * t;
+        const z = startPosition.z; 
+
+        if (y > water.position.y) {
+            points.push(new THREE.Vector3(x, y, z));
+        }
+    }
+
+    return points;
+}
+
+function updateDottedPath() {
+    const startPosition = new THREE.Vector3(
+        cannonBasePosition.x + Math.cos(cannonAngle) * 0.75,
+        cannonBasePosition.y + Math.sin(cannonAngle) * 0.75,
+        cannonBasePosition.z
+    );
+
+    const points = calculateCondensedPath(startPosition, cannonAngle, initialSpeed);
+    dotGeometry.setFromPoints(points);
+}
+
+
+
+window.addEventListener('keydown', (event) => {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) {
+        updateDottedPath();
+    }
+});
+
+updateDottedPath();
+
+window.addEventListener('keydown', handleKeyDown);
 
 function animate() {
     requestAnimationFrame(animate);
-    
+
     const currentTime = clock.getElapsedTime();
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
+    // Handle enemy cannon rotation
 
-    //update player projectile
+    if (!isEnemyRotating && isEnemyPreparingToShoot && currentTime - enemyShootStartTime >= 2.3) {
+        isEnemyRotating = true;
+    }
+    
+    if (isEnemyRotating) {
+        const rotationSpeed = 0.05; // Rotation speed in radians per frame
+        const angleDifference = enemyTargetAngle - enemyCannonAngle;
+
+        if (Math.abs(angleDifference) > 0.01) { // Rotate towards target angle
+            enemyCannonAngle += angleDifference * rotationSpeed;
+
+            // Apply the rotation matrix to the enemy cannon
+            const pivotX = 0.75;
+            const pivotZ = -0.125;
+
+            const enemyToOrigin = translationMatrix(-pivotX, 0, -pivotZ);
+            const enemyRotation = new THREE.Matrix4().multiply(
+                rotationMatrixZ(enemyCannonAngle)
+            ).multiply(
+                rotationMatrixY(Math.PI) // Rotate 180 around Y axis to face the opposite direction
+            );
+            const enemyFromOrigin = translationMatrix(pivotX, 0, pivotZ);
+            const enemyToPosition = translationMatrix(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
+
+            const enemyFinalMatrix = new THREE.Matrix4()
+                .multiply(enemyToPosition)
+                .multiply(enemyFromOrigin)
+                .multiply(enemyRotation)
+                .multiply(enemyToOrigin);
+
+            enemyCannon.matrix.copy(enemyFinalMatrix);
+            enemyCannon.matrixAutoUpdate = false;
+        } else {
+            // Rotation complete
+            isEnemyRotating = false;
+        }
+    }
+
+    // Update enemy shooting logic
+    if (!isEnemyRotating && isEnemyPreparingToShoot && currentTime - enemyShootStartTime >= enemyFireDelay) {
+        fireEnemyProjectile(enemyCannonAngle); // Fire the projectile
+        playShootSound();
+        isEnemyPreparingToShoot = false; 
+    }
+
+    
+    // Update player projectile
     if (isFiring && projectile) {
-        //change velocity wrt gravity
         projectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
-        //update projectile position
         projectile.position.add(projectileVelocity.clone().multiplyScalar(deltaTime));
 
-        //check for collision with water or if it goes out of screen
         if (projectile.position.y <= water.position.y) {
             createSplash(projectile.position.clone());
             playSplashSound();
@@ -701,33 +1043,23 @@ function animate() {
             scene.remove(projectile);
             projectileRemovedTime = clock.getElapsedTime();
         }
-        
+
         collision();
     }
 
-    // Update enemy's projectile
+    // Update enemy projectile
     if (enemyProjectile) {
-        // Update enemy projectile velocity with gravity
+        enemyCollision();
         enemyProjectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
-        // Update enemy projectile position
         enemyProjectile.position.add(enemyProjectileVelocity.clone().multiplyScalar(deltaTime));
 
-        // Check if enemy projectile hits water or boundaries
         if (enemyProjectile.position.y <= water.position.y) {
             createSplash(enemyProjectile.position.clone());
             playSplashSound();
             scene.remove(enemyProjectile);
-            enemyProjectile = null; 
-            enemyProjectileRemovedTime = clock.getElapsedTime(); 
-        } 
-        
-    }
-
-    //its the enemys turn to shoot
-    if (enemyProjectile === null && lastEnemyFireTime !== null && clock.getElapsedTime() - lastEnemyFireTime >= enemyFireDelay) {
-        fireEnemyProjectile(enemyCannonAngle);
-        playShootSound();
-        lastEnemyFireTime = null; // Reset the last fire time
+            enemyProjectile = null;
+            enemyProjectileRemovedTime = clock.getElapsedTime();
+        }
     }
 
     updateSplash();
@@ -740,4 +1072,4 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-animate(); 
+animate();

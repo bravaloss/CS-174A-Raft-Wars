@@ -1,0 +1,11 @@
+Model Information:
+* title:	Inflatable Raft
+* source:	https://sketchfab.com/3d-models/inflatable-raft-5e16fb6d27a24a5a83ef0b6cfe7cdd54
+* author:	Duznot (https://sketchfab.com/duz_vr)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Inflatable Raft" (https://sketchfab.com/3d-models/inflatable-raft-5e16fb6d27a24a5a83ef0b6cfe7cdd54) by Duznot (https://sketchfab.com/duz_vr) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
