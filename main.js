@@ -190,27 +190,34 @@ scene.add(water);
 
 // health bars
 // big bro health bar
-const healthBarGeometry = new THREE.BoxGeometry( 1.8, 0.3, 1 ); 
-const healthBarMaterial = new THREE.MeshBasicMaterial( {color: 0x228B22} ); 
-const healthBar1 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+const healthBar1Geometry = new THREE.BoxGeometry( 1.8, 0.3, 1 ); 
+const healthBar2Geometry = new THREE.BoxGeometry( 1.8, 0.3, 1 ); 
+const healthBar3Geometry = new THREE.BoxGeometry( 1.8, 0.3, 1 ); 
+const healthBar4Geometry = new THREE.BoxGeometry( 1.8, 0.3, 1 ); 
+const healthBar1Material = new THREE.MeshBasicMaterial( {color: 0x228B22} ); 
+const healthBar2Material = new THREE.MeshBasicMaterial( {color: 0x228B22} ); 
+const healthBar3Material = new THREE.MeshBasicMaterial( {color: 0x228B22} ); 
+const healthBar4Material = new THREE.MeshBasicMaterial( {color: 0x228B22} ); 
+
+const healthBar1 = new THREE.Mesh(healthBar1Geometry, healthBar1Material); 
 scene.add(healthBar1);
 healthBar1.position.x = -5;
 healthBar1.position.y = 1.8;
 
 // little bro health bar
-const healthBar2 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+const healthBar2 = new THREE.Mesh(healthBar2Geometry, healthBar2Material); 
 scene.add(healthBar2);
 healthBar2.position.x = -7;
 healthBar2.position.y = 1.8;
 
 // enemy 1 health bar
-const healthBar3 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+const healthBar3 = new THREE.Mesh(healthBar3Geometry, healthBar3Material); 
 scene.add(healthBar3);
 healthBar3.position.x = 17;
 healthBar3.position.y = 1.8;
 
 // enemy 2 health bar
-const healthBar4 = new THREE.Mesh(healthBarGeometry, healthBarMaterial); 
+const healthBar4 = new THREE.Mesh(healthBar4Geometry, healthBar4Material); 
 scene.add(healthBar4);
 healthBar4.position.x = 20;
 healthBar4.position.y = 1.8;
@@ -662,6 +669,15 @@ function updateSplash() {
 }
 
 // Function to create collision between cannon ball and enemy
+let health_val1 = 1; // health value for big bro
+let health_val2 = 1; // health value for lil bro
+let health_val3 = 1; // health value for enemy1
+let health_val4 = 1; // health value for enemy2
+let maxWidth1 = 1.8; // Maximum width of the big bro health bar
+let maxWidth2 = 1.8;
+let maxWidth3 = 1.8;
+let maxWidth4 = 1.8;
+
 function collision() {
 
     if (projectile) {
@@ -677,27 +693,99 @@ function collision() {
         enemyCube2.position.x += 1;
         healthBar4.position.x += 1;
 
+        health_val4 -= 0.25;
+
+        if (health_val1 >= 0) {
+            if (health_val4 <= 0.5 && health_val4 > 0.25) {
+                healthBar4.material.color.set(0xFF6600);
+            }
+            else if (health_val4 <= 0.25 && health_val4 >= 0) {
+                healthBar4.material.color.set(0xFF0000);
+            }
+        }
+        else {
+            scene.remove(enemyCube2);
+            enemyCube2.geometry.dispose();
+            enemyCube2.material.dispose();
+            enemyCube2 = null;
+            scene.remove(healthBar4);
+            healthBar4.geometry.dispose();
+            healthBar4.material.dispose();
+            healthBar4 = null;
+        }
+
+        maxWidth4 = maxWidth4 * health_val4;
+        healthBar4.scale.set(maxWidth4, 1, 1);
 
         enemyCube2_bb.setFromObject(enemyCube2);
     } 
 
     else if (projectile && cannonball_bb.intersectsBox(enemyCube1_bb)) {
         enemyCube1.position.x += 1;
-        healthBar3.position.x += 1
-
-        enemyCube1_bb.setFromObject(enemyCube1);
-    }
-
-    else if (enemyCube1_bb.intersectsBox(enemyCube2_bb)) {
-        enemyCube1.position.x += 1;
-        enemyCube2.position.x += 4;
         healthBar3.position.x += 1;
-        healthBar4.position.x += 4;
+        enemyCannon.position.x += 1;
+
+        health_val3 -= 0.25;
+
+        if (health_val1 >= 0) {
+            if (health_val3 <= 0.5 && health_val3 > 0.25) {
+                healthBar3.material.color.set(0xFF6600);
+            }
+            else if (health_val3 <= 0.25 && health_val3 >= 0) {
+                healthBar3.material.color.set(0xFF0000);
+            }
+        }
+        else {
+            scene.remove(enemyCube1);
+            enemyCube1.geometry.dispose();
+            enemyCube1.material.dispose();
+            enemyCube1 = null;
+            scene.remove(healthBar3);
+            healthBar3.geometry.dispose();
+            healthBar3.material.dispose();
+            healthBar3 = null;
+        }
+
+        maxWidth3 = maxWidth3 * health_val3;
+        healthBar3.scale.set(maxWidth3, 1, 1);
 
         enemyCube1_bb.setFromObject(enemyCube1);
-        enemyCube2_bb.setFromObject(enemyCube2);
-    }
 
+        // after moving the enemyCube1, check for collision with the enemyCube2
+        if (enemyCube1_bb.intersectsBox(enemyCube2_bb)) {
+            console.log("Big cube collided with the second cube!");
+
+            enemyCube2.position.x -= 1;
+            healthBar4.position.x -= 1;
+
+            health_val4 -= 0.25;
+
+            if (health_val4 >= 0) {
+                if (health_val4 <= 0.5 && health_val4 > 0.25) {
+                    healthBar4.material.color.set(0xFF6600);
+                }
+                else if (health_val4 <= 0.25 && health_val4 >= 0) {
+                    healthBar4.material.color.set(0xFF0000);
+                }
+            }
+            else {
+                scene.remove(enemyCube2);
+                enemyCube2.geometry.dispose();
+                enemyCube2.material.dispose();
+                enemyCube2 = null;
+                scene.remove(healthBar4);
+                healthBar4.geometry.dispose();
+                healthBar4.material.dispose();
+                healthBar4 = null;
+            }
+    
+            maxWidth4 = maxWidth4 * health_val4;
+            healthBar4.scale.set(maxWidth4, 1, 1);
+
+            //update the enemyCube2 bounding box
+            enemyCube2_bb.setFromObject(enemyCube2);
+        }
+    }
 }
 
 function enemyCollision() {
@@ -715,6 +803,31 @@ function enemyCollision() {
         //move big bro back
         cube.position.x -= 1;
         healthBar1.position.x -= 1;
+        cannon.position.x -= 1;
+
+        health_val1 -= 0.25;
+
+        if (health_val1 >= 0) {
+            if (health_val1 <= 0.5 && health_val1 > 0.25) {
+                healthBar1.material.color.set(0xFF6600);
+            }
+            else if (health_val1 <= 0.25 && health_val1 >= 0) {
+                healthBar1.material.color.set(0xFF0000);
+            }
+        }
+        else {
+            scene.remove(cube);
+            cube.geometry.dispose();
+            cube.material.dispose();
+            cube = null;
+            scene.remove(healthBar1);
+            healthBar1.geometry.dispose();
+            healthBar1.material.dispose();
+            healthBar1 = null;
+        }
+
+        maxWidth1 = maxWidth1 * health_val1;
+        healthBar1.scale.set(maxWidth1, 1, 1);
 
         //update the big cube's bounding box
         cube_bb.setFromObject(cube);
@@ -730,6 +843,30 @@ function enemyCollision() {
             whiteCube.position.x -= 1;
             healthBar2.position.x -= 1;
 
+            health_val2 -= 0.25;
+
+            if (health_val2 >= 0) {
+                if (health_val2 <= 0.5 && health_val2 > 0.25) {
+                    healthBar2.material.color.set(0xFF6600);
+                }
+                else if (health_val2 <= 0.25 && health_val2 >= 0) {
+                    healthBar2.material.color.set(0xFF0000);
+                }
+            }
+            else {
+                scene.remove(whiteCube);
+                whiteCube.geometry.dispose();
+                whiteCube.material.dispose();
+                whiteCube = null;
+                scene.remove(healthBar2);
+                healthBar2.geometry.dispose();
+                healthBar2.material.dispose();
+                healthBar2 = null;
+            }
+    
+            maxWidth2 = maxWidth2 * health_val2;
+            healthBar2.scale.set(maxWidth2, 1, 1);
+
             //update the second cube's bounding box
             whiteCube_bb.setFromObject(whiteCube);
         }
@@ -740,20 +877,43 @@ function enemyCollision() {
         whiteCube.position.x -= 1;
         healthBar2.position.x -= 1;
 
+        health_val2 -= 0.25;
+
+        if (health_val2 >= 0) {
+            if (health_val2 <= 0.5 && health_val2 > 0.25) {
+                healthBar2.material.color.set(0xFF6600);
+            }
+            else if (health_val2 <= 0.25 && health_val2 >= 0) {
+                healthBar2.material.color.set(0xFF0000);
+            }
+        }
+        else {
+            scene.remove(whiteCube);
+            whiteCube.geometry.dispose();
+            whiteCube.material.dispose();
+            whiteCube = null;
+            scene.remove(healthBar2);
+            healthBar2.geometry.dispose();
+            healthBar2.material.dispose();
+            healthBar2 = null;
+        }
+
+        maxWidth2 = maxWidth2 * health_val2;
+        healthBar2.scale.set(maxWidth2, 1, 1);
 
         //update the second cube's bounding box
         whiteCube_bb.setFromObject(whiteCube);
-        scene.remove(enemyProjectile);
-        enemyProjectile = null;
+        // scene.remove(enemyProjectile);
+        // enemyProjectile = null;
     }
-    //check for collision with the raft
-    else if (enemyProjectile_bb.intersectsBox(raft_bb)) {
-        console.log("Enemy projectile hit the raft!");
+    // //check for collision with the raft
+    // else if (enemyProjectile_bb.intersectsBox(raft_bb)) {
+    //     console.log("Enemy projectile hit the raft!");
 
-        //remove the enemy projectile
-        scene.remove(enemyProjectile);
-        enemyProjectile = null;
-    }
+    //     //remove the enemy projectile
+    //     scene.remove(enemyProjectile);
+    //     enemyProjectile = null;
+    // }
 }
 
 camera.add(camera2);
