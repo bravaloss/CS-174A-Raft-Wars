@@ -9,6 +9,7 @@ const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerH
 const camera2 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, .01, 500);
 const loader = new GLTFLoader();
 
+
 loader.load('./assets/raft_by_henri/scene.gltf',
     function ( gltf ) {
         scene.add( gltf.scene );
@@ -119,6 +120,81 @@ const zAxis = createAxisLine(0x0000ff, new THREE.Vector3(0, 0, 0), new THREE.Vec
 // scene.add(xAxis);
 // scene.add(yAxis);
 // scene.add(zAxis);
+
+const waterShaderMaterial = new THREE.ShaderMaterial({
+    uniforms: {
+        uTime: { value: 0 },
+        uColor: { value: new THREE.Color(0x1ca3ec) }, // Base water color
+        uWaveSpeed: { value: 1.0 }, // Speed of the wave
+        uWaveHeight: { value: 0.1 }, // Height of the wave
+        uWaveFrequency: { value: 2.0 }, // Frequency of the wave
+        uReflectivity: { value: 0.1 }, // Reflectivity intensity
+        uSkyColor: { value: new THREE.Color(0x87CEEB) } // Sky color for reflection
+    },
+    vertexShader: `
+        uniform float uTime;
+        uniform float uWaveHeight;
+        uniform float uWaveFrequency;
+
+        varying vec2 vUv;
+        varying float vWave;
+        varying vec3 vWorldPosition;
+
+        void main() {
+            vUv = uv;
+            vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
+
+            // Get the vertex position in world space
+            vec3 pos = position;
+            
+            //first wave layer
+            pos.z += sin(pos.x * uWaveFrequency + uTime) * uWaveHeight;
+            
+            //second wave layer with different frequency and direction
+            pos.z += cos(pos.y * (uWaveFrequency * 1.5) + uTime * 0.7) * (uWaveHeight * 0.5);
+            
+            //wave layer with different frequency and direction
+            pos.z += sin((pos.x + pos.y) * (uWaveFrequency * 0.8) + uTime * 1.2) * (uWaveHeight * 0.25);
+
+            vWave = pos.z;
+
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+        }
+    `,
+    fragmentShader: `
+        uniform vec3 uColor;
+        uniform float uReflectivity;
+        uniform vec3 uSkyColor;
+
+        varying vec2 vUv;
+        varying float vWave;
+        varying vec3 vWorldPosition;
+
+        void main() {
+            //default water color
+            vec3 waterColor = uColor;
+
+            //wave-based color variation
+            float waveIntensity = vWave * 2.0 + 0.5;
+            waterColor *= waveIntensity;
+
+            //simulate reflection
+            vec3 reflectionColor = mix(waterColor, uSkyColor, uReflectivity);
+            
+            //specular reflection
+            float specular = pow(max(0.0, vWave), 5.0) * 0.5;
+            reflectionColor += vec3(specular);
+
+            //transparency
+            float alpha = 0.8 + vWave * 0.2;
+
+            gl_FragColor = vec4(reflectionColor, alpha);
+        }
+    `,
+    transparent: true,
+    side: THREE.DoubleSide
+});
+
 
 
 // const scene = new THREE.Scene();
@@ -285,9 +361,9 @@ const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
 
 //water
-const waterGeometry = new THREE.PlaneGeometry(500, 500);
+const waterGeometry = new THREE.PlaneGeometry(500, 500, 100, 100);
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x1ca3ec, side: THREE.DoubleSide });
-const water = new THREE.Mesh(waterGeometry, waterMaterial);
+const water = new THREE.Mesh(waterGeometry, waterShaderMaterial);
 water.rotation.x = -Math.PI / 2; //makes the water horizontal
 water.position.y = -1; //lowers water
 scene.add(water);
@@ -485,8 +561,8 @@ function createPalmTree(trunkHeight = 10, frondsCount = 8) {
 }
 
 
-const palmTree = createPalmTree(12, 10);
-palmTree.position.set(0, 1.5, -40);
+const palmTree = createPalmTree(8, 10);
+palmTree.position.set(0, 3.5, -40);
 
 scene.add(palmTree);
 
@@ -1179,6 +1255,8 @@ function animate() {
     raft.position.y = -0.9 + Math.sin(time * 2) * 0.1;
     raft2.position.y = -0.9 + Math.sin(time * 6) * 0.1;
     updateCameraPosition(deltaTime);
+    waterShaderMaterial.uniforms.uTime.value = currentTime;
+
 
     renderer.render(scene, camera);
 }
