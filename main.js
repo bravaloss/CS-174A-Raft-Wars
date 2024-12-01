@@ -835,7 +835,7 @@ function updateSplash() {
 }
 
 // Function to create collision between cannon ball and enemy
-let health_val = 0.25; // health value for big bro
+let health_val = 0.3; // health value for big bro
 let maxWidth1 = 1.8; // Maximum width of the big bro health bar
 let maxWidth2 = 1.8;
 let maxWidth3 = 1.8;
@@ -851,39 +851,25 @@ function collision() {
     }
     cube_bb.setFromObject(cube);
 
-    if (projectile) {
-        cannonball_bb.setFromObject(projectile);
-    }
-    if (enemyProjectile) {
-        enemyCannonball_bb.setFromObject(enemyProjectile);
-    }
-    cube_bb.setFromObject(cube);
-
     // intersect test
     if (projectile && cannonball_bb.intersectsBox(enemyCube2_bb)) {
         enemyCube2.position.x += 1;
         healthBar4.position.x += 1;
 
-        maxWidth4 = maxWidth4 * health_val;
+        maxWidth4 -= health_val;
         healthBar4.scale.set(maxWidth4, 1, 1);
 
-        if (maxWidth4 >= 0) {
-            if (maxWidth4 <= 0.5 && maxWidth4 > 0.25) {
+        if (maxWidth4 > 0.1) {
+            if (maxWidth4 <= 0.7 && maxWidth4 > 0.3) {
                 healthBar4.material.color.set(0xFF6600);
             }
-            else if (maxWidth4 <= 0.25 && maxWidth4 >= 0) {
+            else if (maxWidth4 <= 0.3 && maxWidth4 >= 0.1) {
                 healthBar4.material.color.set(0xFF0000);
             }
         }
-        else {
-            scene.remove(enemyCube2);
-            enemyCube2.geometry.dispose();
-            enemyCube2.material.dispose();
-            enemyCube2 = null;
-            scene.remove(healthBar4);
-            healthBar4.geometry.dispose();
-            healthBar4.material.dispose();
-            healthBar4 = null;
+        else if (maxWidth4 <= 0.1) {
+            enemyCube2.visible = false;
+            healthBar4.visible = false;
         }
 
         enemyCube2_bb.setFromObject(enemyCube2);
@@ -894,26 +880,20 @@ function collision() {
         healthBar3.position.x += 1;
         enemyCannon.position.x += 1;
 
-        maxWidth3 = maxWidth3 * health_val;
+        maxWidth3 -= health_val;
         healthBar3.scale.set(maxWidth3, 1, 1);
 
-        if (maxWidth3 >= 0) {
-            if (maxWidth3 <= 0.5 && maxWidth3 > 0.25) {
+        if (maxWidth3 > 0.1) {
+            if (maxWidth3 <= 0.7 && maxWidth3 > 0.3) {
                 healthBar3.material.color.set(0xFF6600);
             }
-            else if (maxWidth3 <= 0.25 && maxWidth3 >= 0) {
+            else if (maxWidth3 <= 0.3 && maxWidth3 >= 0.1) {
                 healthBar3.material.color.set(0xFF0000);
             }
         }
-        else {
-            scene.remove(enemyCube1);
-            enemyCube1.geometry.dispose();
-            enemyCube1.material.dispose();
-            enemyCube1 = null;
-            scene.remove(healthBar3);
-            healthBar3.geometry.dispose();
-            healthBar3.material.dispose();
-            healthBar3 = null;
+        else if (maxWidth3 <= 0.1) {
+            enemyCube1.visible = false;
+            healthBar3.visible = false;
         }
 
         enemyCube1_bb.setFromObject(enemyCube1);
@@ -925,26 +905,20 @@ function collision() {
             enemyCube2.position.x -= 1;
             healthBar4.position.x -= 1;
 
-            maxWidth4 = maxWidth4 * health_val;
+            maxWidth4 -= health_val;
             healthBar4.scale.set(maxWidth4, 1, 1);
 
-            if (maxWidth4 >= 0) {
-                if (maxWidth4 <= 0.5 && maxWidth4 > 0.25) {
+            if (maxWidth4 > 0.1) {
+                if (maxWidth4 <= 0.7 && maxWidth4 > 0.3) {
                     healthBar4.material.color.set(0xFF6600);
                 }
-                else if (maxWidth4 <= 0.25 && maxWidth4 >= 0) {
+                else if (maxWidth4 <= 0.3 && maxWidth4 >= 0.1) {
                     healthBar4.material.color.set(0xFF0000);
                 }
             }
-            else {
-                scene.remove(enemyCube2);
-                enemyCube2.geometry.dispose();
-                enemyCube2.material.dispose();
-                enemyCube2 = null;
-                scene.remove(healthBar4);
-                healthBar4.geometry.dispose();
-                healthBar4.material.dispose();
-                healthBar4 = null;
+            else if (maxWidth4 <= 0.1) {
+                enemyCube2.visible = false;
+                healthBar4.visible = false;
             }
 
             //update the enemyCube2 bounding box
@@ -970,26 +944,20 @@ function enemyCollision() {
         healthBar1.position.x -= 1;
         cannon.position.x -= 1;
 
-        maxWidth1 = maxWidth1 * health_val;
+        maxWidth1 -= health_val;
         healthBar1.scale.set(maxWidth1, 1, 1);
 
-        if (maxWidth1 >= 0) {
-            if (maxWidth1 <= 0.5 && maxWidth1 > 0.25) {
+        if (maxWidth1 > 0.1) {
+            if (maxWidth1 <= 0.7 && maxWidth1 > 0.3) {
                 healthBar1.material.color.set(0xFF6600);
             }
-            else if (maxWidth1 <= 0.25 && maxWidth1 >= 0) {
+            else if (maxWidth1 <= 0.3 && maxWidth1 >= 0.1) {
                 healthBar1.material.color.set(0xFF0000);
             }
         }
-        else {
-            scene.remove(cube);
-            cube.geometry.dispose();
-            cube.material.dispose();
-            cube = null;
-            scene.remove(healthBar1);
-            healthBar1.geometry.dispose();
-            healthBar1.material.dispose();
-            healthBar1 = null;
+        else if (maxWidth1 <= 0.1) {
+            cube.visible = false;
+            healthBar1.visible = false;
         }
 
         //update the big cube's bounding box
@@ -1006,26 +974,20 @@ function enemyCollision() {
             whiteCube.position.x -= 1;
             healthBar2.position.x -= 1;
 
-            maxWidth2 = maxWidth2 * health_val;
+            maxWidth2 -= health_val;
             healthBar2.scale.set(maxWidth2, 1, 1);
 
-            if (maxWidth2 >= 0) {
-                if (maxWidth2 <= 0.5 && maxWidth2 > 0.25) {
+            if (maxWidth2 > 0.1) {
+                if (maxWidth2 <= 0.7 && maxWidth2 > 0.3) {
                     healthBar2.material.color.set(0xFF6600);
                 }
-                else if (maxWidth2 <= 0.25 && maxWidth2 >= 0) {
+                else if (maxWidth2 <= 0.3 && maxWidth2 >= 0.1) {
                     healthBar2.material.color.set(0xFF0000);
                 }
             }
-            else {
-                scene.remove(whiteCube);
-                whiteCube.geometry.dispose();
-                whiteCube.material.dispose();
-                whiteCube = null;
-                scene.remove(healthBar2);
-                healthBar2.geometry.dispose();
-                healthBar2.material.dispose();
-                healthBar2 = null;
+            else if (maxWidth2 <= 0.1) {
+                whiteCube.visible = false;
+                healthBar2.visible = false;
             }
 
             //update the second cube's bounding box
@@ -1038,26 +1000,20 @@ function enemyCollision() {
         whiteCube.position.x -= 1;
         healthBar2.position.x -= 1;
 
-        maxWidth2 = maxWidth2 * health_val;
+        maxWidth2 -= health_val;
         healthBar2.scale.set(maxWidth2, 1, 1);
 
-        if (maxWidth2 >= 0) {
-            if (maxWidth2 <= 0.5 && maxWidth2 > 0.25) {
+        if (maxWidth2 > 0.1) {
+            if (maxWidth2 <= 0.7 && maxWidth2 > 0.3) {
                 healthBar2.material.color.set(0xFF6600);
             }
-            else if (maxWidth2 <= 0.25 && maxWidth2 >= 0) {
+            else if (maxWidth2 <= 0.3 && maxWidth2 >= 0.1) {
                 healthBar2.material.color.set(0xFF0000);
             }
         }
-        else {
-            scene.remove(whiteCube);
-            whiteCube.geometry.dispose();
-            whiteCube.material.dispose();
-            whiteCube = null;
-            scene.remove(healthBar2);
-            healthBar2.geometry.dispose();
-            healthBar2.material.dispose();
-            healthBar2 = null;
+        else if (maxWidth2 <= 0.1) {
+            whiteCube.visible = false;
+            healthBar2.visible = false;
         }
 
         //update the second cube's bounding box
