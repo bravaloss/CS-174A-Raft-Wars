@@ -3,12 +3,158 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { normalize } from 'three/src/math/MathUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+// import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const camera2 = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, .01, 500);
 const loader = new GLTFLoader();
+const fontLoader = new FontLoader();
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+let textMesh;
+let gameStarted = false; 
+let inMenu = true; // Start in the menu
+const powerDisplay = document.getElementById('powerDisplay');
 
+updatePowerDisplayVisibility();
+
+const name_font = fontLoader.load(
+	// resource URL
+	'./fonts/Luckiest Guy_Regular.json',
+
+	// onLoad callback
+    
+    function (font) {
+        // Create text geometry and mesh
+        const textGeometry = new TextGeometry('Raft Wars', {
+            font: font,
+            size: 5, // Adjust size for better visibility in the sky
+            height: 1,
+        });
+
+        const textMaterial = new THREE.MeshPhongMaterial({ color: 0xad4000 });
+        textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+        // Position text in the sky
+        textMesh.position.set(-1, 31.3, 0); // Sky position
+        textMesh.castShadow = true;
+
+        scene.add(textMesh);
+
+        
+    },
+
+	// onProgress callback
+	function ( xhr ) {
+		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+	},
+
+	// onError callback
+	function ( err ) {
+		console.log( 'An error happened' );
+	}
+    
+);
+
+const font = fontLoader.load(
+	// resource URL
+	'./fonts/Luckiest Guy_Regular.json',
+
+	// onLoad callback
+    
+    function (font) {
+        // Create text geometry and mesh
+        const textGeometry = new TextGeometry('Play', {
+            font: font,
+            size: 5, // Adjust size for better visibility in the sky
+            height: 1,
+        });
+
+        const textMaterial = new THREE.MeshPhongMaterial({ color: 0xad4000 });
+        textMesh = new THREE.Mesh(textGeometry, textMaterial);
+
+        // Position text in the sky
+        textMesh.position.set(8, 25, 0); // Sky position
+        textMesh.castShadow = true;
+
+        scene.add(textMesh);
+
+        // Add click event for raycasting
+        window.addEventListener('mousemove', (event) => {
+            // Ensure textMesh exists before raycasting
+            if (!textMesh) return;
+
+            // Convert mouse position to normalized device coordinates (-1 to +1)
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            // Perform raycasting
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObject(textMesh);
+            
+            if (intersects.length > 0) {
+                textMesh.material.color.set(0xFFD700); // Change to yellow on hover
+            } else {
+                textMesh.material.color.set(0xFFFF00); // Reset to original yellow color
+            }
+        });
+        window.addEventListener('mousedown', (event) => {
+            if (inMenu) {
+                // Convert mouse position to normalized device coordinates (-1 to +1)
+                mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+                mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+        
+                // Update raycaster with camera and mouse position
+                raycaster.setFromCamera(mouse, camera);
+        
+                const intersects = raycaster.intersectObject(textMesh);
+                if (intersects.length > 0) {
+                    // Lerp camera to the game position
+                    const targetPosition = defaultCameraPosition.clone();
+                    const targetRotation = defaultCameraRotation.clone();
+                    const animationDuration = 2; // Duration in seconds
+                    const startTime = clock.getElapsedTime();
+        
+                    function animateCameraLerp() {
+                        const elapsedTime = clock.getElapsedTime() - startTime;
+                        const t = Math.min(elapsedTime / animationDuration, 1);
+        
+                        camera.position.lerp(targetPosition, t);
+                        camera.rotation.x += (targetRotation.x - camera.rotation.x) * t;
+                        camera.rotation.y += (targetRotation.y - camera.rotation.y) * t;
+                        camera.rotation.z += (targetRotation.z - camera.rotation.z) * t;
+        
+                        if (t < 1) {
+                            requestAnimationFrame(animateCameraLerp);
+                        } else {
+                            inMenu = false; // Switch to game state
+                            gameStarted = true; // Start the game logic
+                            controls.enabled = true; // Re-enable OrbitControls
+                            updatePowerDisplayVisibility();
+                        }
+                    }
+        
+                    controls.enabled = false; // Disable OrbitControls during animation
+                    animateCameraLerp();
+                }
+            }
+        });
+        
+    },
+
+	// onProgress callback
+	function ( xhr ) {
+		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
+	},
+
+	// onError callback
+	function ( err ) {
+		console.log( 'An error happened' );
+	}
+    
+);
 
 loader.load('./assets/raft_by_henri/scene.gltf',
     function ( gltf ) {
@@ -39,6 +185,7 @@ loader.load('./assets/raft_by_henri/scene.gltf',
         console.log( 'An error happened', error );
     }
 );
+
 
 //enemy raft 1 gltf  17, -0.9, 0
 loader.load('./assets/jangada_de_bambu_bamboo_raft/scene.gltf',
@@ -315,7 +462,7 @@ function createCloud() {
     const cloudMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
 
     //multiple spheres for cloud shape and group them together
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 8; i++) {
         const cloudPartGeometry = new THREE.SphereGeometry(Math.random() * 0.5 + 0.5, 16, 16);
         const cloudPart = new THREE.Mesh(cloudPartGeometry, cloudMaterial);
         cloudPart.position.set(
@@ -330,7 +477,7 @@ function createCloud() {
 }
 
 //put clouds in the sky
-for (let i = 0; i < 5; i++) {
+for (let i = 0; i < 7; i++) {
     const cloud = createCloud();
     //random xyz coordinates in the sky
     cloud.position.set(
@@ -691,10 +838,29 @@ let enemyTargetAngle = null; //target angle for rotation
 
 // Handle key down events
 
-const powerDisplay = document.getElementById('powerDisplay');
+
+function updatePowerDisplayVisibility() {
+    if (inMenu) {
+        powerDisplay.style.display = 'none';
+    } else {
+        powerDisplay.style.display = 'block';
+    }
+}
 
 function updatePowerDisplay(power) {
     powerDisplay.textContent = `Power: ${power}`;
+}
+
+function goToMenu() {
+    inMenu = true; 
+    gameStarted = false;
+
+    // Move the camera back to the menu view
+    camera.position.set(15, 25, 25);
+    camera.lookAt(15, 25, -50);
+
+    controls.enabled = false; 
+    updatePowerDisplayVisibility();
 }
 
 
@@ -739,7 +905,11 @@ function handleKeyDown(event)
         initialSpeed = Math.max(initialSpeed - SPEED_INCREMENT, MIN_SPEED);
         console.log(`Projectile Speed: ${initialSpeed}`);
         updatePowerDisplay(initialSpeed);
-
+    }
+    if (event.key === 'Escape') {
+        if (!inMenu) {
+            goToMenu(); // Return to the menu if in the game
+        }
     }
     
     //reset cannon position and apply transformations for pivot rotation
@@ -812,6 +982,7 @@ const defaultCameraRotation = camera.rotation.clone(); // Clone to store initial
 
 function updateCameraPosition(deltaTime) {
     const currentTime = clock.getElapsedTime();
+    if (!gameStarted || inMenu) return;
 
     if (isFiring && projectile) {
         const fixedZPosition = defaultCameraPosition.z; //keep z-position constant
@@ -1111,6 +1282,9 @@ function enemyCollision() {
 camera.add(camera2);
 scene.add(camera);
 
+camera.position.set(15, 25, 25); // Position near the text
+camera.lookAt(15, 25, -50); // Look at the text position
+controls.enabled = false;
 // Dotted path for the projectile
 const dotMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 0.2 });
 
@@ -1160,7 +1334,7 @@ window.addEventListener('keydown', (event) => {
 });
 
 updateDottedPath();
-
+water.receiveShadow = true;
 window.addEventListener('keydown', handleKeyDown);
 
 function animate() {
