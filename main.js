@@ -20,7 +20,13 @@ const powerDisplay = document.getElementById('powerDisplay');
 const windDisplay = document.getElementById('windDisplay');
 const windDirections = ['W', 'E']; 
 
-updatePowerDisplayVisibility();
+function updatePowerDisplayVisibility() {
+    if (inMenu) {
+        powerDisplay.style.display = 'none';
+    } else {
+        powerDisplay.style.display = 'block';
+    }
+}
 
 const name_font = fontLoader.load(
 	// resource URL
@@ -514,7 +520,6 @@ const clouds = []; // Keep track of all clouds
 
 //put clouds in the sky
 for (let i = 0; i < 15; i++) {
-for (let i = 0; i < 15; i++) {
     const cloud = createCloud();
     //random xyz coordinates in the sky
     cloud.position.set(
@@ -911,7 +916,7 @@ function updatePowerDisplayVisibility() {
     } else {
         powerDisplay.style.display = 'block';
     }
-}
+};
 
 function updatePowerDisplay(power) {
     powerDisplay.textContent = `Power: ${power}`;
@@ -1087,7 +1092,7 @@ function handleKeyDown(event)
         enemyCannon.matrix.copy(enemyFinalMatrix);
         enemyCannon.matrixAutoUpdate = false;
     }
-}
+};
 
 cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
 
@@ -1617,7 +1622,6 @@ function animate() {
 
 
     renderer.render(scene, camera);
-    }
 }
 
 animate();
