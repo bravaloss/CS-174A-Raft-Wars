@@ -514,6 +514,7 @@ const clouds = []; // Keep track of all clouds
 
 //put clouds in the sky
 for (let i = 0; i < 15; i++) {
+for (let i = 0; i < 15; i++) {
     const cloud = createCloud();
     //random xyz coordinates in the sky
     cloud.position.set(
@@ -521,6 +522,9 @@ for (let i = 0; i < 15; i++) {
         Math.random() * 5 + 5,       
         -Math.random() * 50          
     );
+
+    cloud.userData.speed = Math.random() * 0.01 + 0.002; // Assign a random speed to the cloud
+    clouds.push(cloud); // Add to the array for tracking
 
     cloud.userData.speed = Math.random() * 0.01 + 0.002; // Assign a random speed to the cloud
     clouds.push(cloud); // Add to the array for tracking
@@ -1576,6 +1580,9 @@ function animate() {
             isFiring = false;
             scene.remove(projectile);
             projectileRemovedTime = clock.getElapsedTime();
+            
+            //change wind for every turn
+            // updateWind();
         }
 
         collision();
@@ -1610,6 +1617,7 @@ function animate() {
 
 
     renderer.render(scene, camera);
+    }
 }
 
 animate();
