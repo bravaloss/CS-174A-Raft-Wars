@@ -17,6 +17,10 @@ let textMesh;
 let gameStarted = false; 
 let inMenu = true; // Start in the menu
 const powerDisplay = document.getElementById('powerDisplay');
+const windDisplay = document.getElementById('windDisplay');
+const windDirections = ['W', 'E']; 
+
+
 
 updatePowerDisplayVisibility();
 
@@ -476,8 +480,9 @@ function createCloud() {
     return cloudGroup;
 }
 
+const clouds = []; // Keep track of all clouds
 //put clouds in the sky
-for (let i = 0; i < 7; i++) {
+for (let i = 0; i < 15; i++) {
     const cloud = createCloud();
     //random xyz coordinates in the sky
     cloud.position.set(
@@ -485,6 +490,9 @@ for (let i = 0; i < 7; i++) {
         Math.random() * 5 + 5,       
         -Math.random() * 50          
     );
+
+    cloud.userData.speed = Math.random() * 0.01 + 0.002; // Assign a random speed to the cloud
+    clouds.push(cloud); // Add to the array for tracking
     scene.add(cloud);
 }
 
@@ -806,6 +814,13 @@ function fireProjectile(cannonAngle) {
     isFiring = true;
     lastTime = clock.getElapsedTime();
 }
+
+function updateWind() {
+    const direction = windDirections[Math.floor(Math.random() * windDirections.length)];
+    const speed = (Math.random() * 10).toFixed(1); // Random number between 0 and 10
+    windDisplay.textContent = `Wind: ${direction} ${speed}`;
+}
+
 
 //function that calculates radians from degree  
 function deg2rad(degrees) {
@@ -1344,7 +1359,14 @@ function animate() {
     const deltaTime = currentTime - lastTime;
     lastTime = currentTime;
     // Handle enemy cannon rotation
+    clouds.forEach((cloud) => {
+        cloud.position.x += cloud.userData.speed; // Move based on individual speed
+        if (cloud.position.x > 70) {
+            cloud.position.x = -25; // Loop back if out of bounds
+        }
+    });
 
+    
     if (!isEnemyRotating && isEnemyPreparingToShoot && currentTime - enemyShootStartTime >= 2.3) {
         isEnemyRotating = true;
     }
@@ -1402,6 +1424,9 @@ function animate() {
             isFiring = false;
             scene.remove(projectile);
             projectileRemovedTime = clock.getElapsedTime();
+            
+            //change wind for every turn
+            // updateWind();
         }
 
         collision();
@@ -1420,6 +1445,9 @@ function animate() {
             scene.remove(enemyProjectile);
             enemyProjectile = null;
             enemyProjectileRemovedTime = clock.getElapsedTime();
+            
+            //change wind for every turn
+            updateWind();
         }
     }
 
