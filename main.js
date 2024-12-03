@@ -20,13 +20,7 @@ const powerDisplay = document.getElementById('powerDisplay');
 const windDisplay = document.getElementById('windDisplay');
 const windDirections = ['W', 'E']; 
 
-function updatePowerDisplayVisibility() {
-    if (inMenu) {
-        powerDisplay.style.display = 'none';
-    } else {
-        powerDisplay.style.display = 'block';
-    }
-}
+updatePowerDisplayVisibility();
 
 const name_font = fontLoader.load(
 	// resource URL
