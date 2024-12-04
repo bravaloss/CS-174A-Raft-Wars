@@ -1,31 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<title>Raft Wars</title>
-		<style>
-			body { margin: 0; }
-			#powerDisplay {
-                position: absolute;
-                top: 10px;
-                left: 10px;
-                color: rgb(0, 0, 0);
-                font-size: 20px;
-                z-index: 10;
-                padding: 10px;
-                background-color: rgba(255, 255, 255, 0.8);
-                border: 2px solid rgb(0, 0, 0);
-                border-radius: 8px;
-                font-family: 'Arial', sans-serif;
-                box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
-            }
-		</style>
-	</head>
-	<body>
-		<script type="module" src="/main.js"></script>
-	</body>
-	<div id="powerDisplay" style="position: absolute; top: 10px; left: 10px; color: rgb(0, 0, 0); font-size: 20px; z-index: 10;">
-		Power: 15
-	</div>
-	
+<head>
+    <meta charset="utf-8">
+    <title>Raft Wars</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; /* Prevent scrolling */
+        }
+        #powerDisplay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: rgb(0, 0, 0);
+            font-size: 20px;
+            z-index: 10;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgb(0, 0, 0);
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #windDisplay {
+            position: absolute;
+            top: 70px; /* Adjusted to create more space */
+            left: 10px;
+            color: rgb(0, 0, 0);
+            font-size: 20px;
+            z-index: 10;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgb(0, 0, 0);
+            border-radius: 8px;
+            font-family: 'Arial', sans-serif;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="powerDisplay">Power: 15</div>
+    <div id="windDisplay">Wind: N 5</div>
+    <script type="module" src="/main.js"></script>
+</body>
 </html>
