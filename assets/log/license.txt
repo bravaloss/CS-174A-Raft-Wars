@@ -1,0 +1,11 @@
+Model Information:
+* title:	Log
+* source:	https://sketchfab.com/3d-models/log-27624ee05fea49899ba2a63e2f6d1e34
+* author:	Arkikon (https://sketchfab.com/ragnar)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Log" (https://sketchfab.com/3d-models/log-27624ee05fea49899ba2a63e2f6d1e34) by Arkikon (https://sketchfab.com/ragnar) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

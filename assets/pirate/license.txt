@@ -1,0 +1,11 @@
+Model Information:
+* title:	Pirate
+* source:	https://sketchfab.com/3d-models/pirate-00200996b8f34f55a2dd2f44d316d107
+* author:	Gleb_Parshikov (https://sketchfab.com/gleb_parshikov)
+
+Model License:
+* license type:	CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)
+* requirements:	Author must be credited. Modified versions must have the same license. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Pirate" (https://sketchfab.com/3d-models/pirate-00200996b8f34f55a2dd2f44d316d107) by Gleb_Parshikov (https://sketchfab.com/gleb_parshikov) licensed under CC-BY-SA-4.0 (http://creativecommons.org/licenses/by-sa/4.0/)
