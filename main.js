@@ -38,7 +38,7 @@ let isEnemy2Flying = false;
 let isEnemy3Flying = false;
 let isLilBroFlying = false;
 let isPlayerFlying = false;
-
+let pirateModel;
 let enemy1Velocity = new THREE.Vector3();
 let enemy2Velocity = new THREE.Vector3();
 let lilBroVelocity = new THREE.Vector3();
@@ -692,7 +692,6 @@ loader.load('/assets/bear.gltf',
         console.log( 'An error happened', error );
     }
 );
-
 //water
 const waterGeometry = new THREE.PlaneGeometry(500, 500, 100, 100);
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x1ca3ec, side: THREE.DoubleSide });
@@ -767,17 +766,58 @@ scene.add(line4);
 
 // Enemy 3
 const enemyCubeGeometry3 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-const enemyCubeMaterial3 = new THREE.MeshBasicMaterial({ color: 0x800080 }); // Purple color
+const enemyCubeMaterial3 = new THREE.MeshBasicMaterial({ color: 0x800080, visible: false}); // Purple color
 const enemyCube3 = new THREE.Mesh(enemyCubeGeometry3, enemyCubeMaterial3);
 // enemyCube3.position.set(14, -0.1, 0);
 scene.add(enemyCube3);
 
+loader.load('/assets/pirate/scene.gltf',
+    function (gltf) {
+        pirateModel = gltf.scene;
+        scene.add(pirateModel);
+        
+        // Set initial scale
+        pirateModel.scale.set(1, 1, 1);
+        pirateModel.position.set(14, -0.6, 0);
+        pirateModel.rotation.y = deg2rad(270); // Rotate 90 degrees
+        
+        // Initially hide the model
+        pirateModel.visible = false;
+
+        // Update the enemyCube3 reference to include the model
+        enemyCube3.add(pirateModel);
+        
+        // Make sure the model moves with enemyCube3
+        pirateModel.position.set(0, 0, 0);
+        
+        // Add scale maintenance function
+        function maintainPirateScale() {
+            if (pirateModel && pirateModel.parent) {
+                pirateModel.scale.set(1, 1, 1);
+                enemyCube3.scale.set(1, 1, 1);
+            }
+        }
+        
+        // Add this to the animation loop
+        const originalAnimate = animate;
+        animate = function() {
+            maintainPirateScale();
+            originalAnimate();
+        }
+    },
+    function (xhr) {
+        console.log((xhr.loaded / xhr.total * 100) + '% loaded');
+    },
+    function (error) {
+        console.error('An error happened loading pirate model:', error);
+    }
+);
 // Enemy 3 health bar
 const healthBar5Geometry = new THREE.BoxGeometry(1.8, 0.3, 0.3);
 const healthBar5Material = new THREE.MeshBasicMaterial({ color: 0x228B22 });
 const healthBar5 = new THREE.Mesh(healthBar5Geometry, healthBar5Material);
 scene.add(healthBar5);
-healthBar5.position.set(14, 1.8, 0);
+healthBar5.position.set(14, 1.2, 0);
 
 const edges5 = new THREE.EdgesGeometry(healthBar5Geometry);
 const line5 = new THREE.LineSegments(edges5, new THREE.LineBasicMaterial({ color: 0x000000 }));
@@ -794,6 +834,7 @@ const enemyCubeMaterial4 = new THREE.MeshBasicMaterial({ color: 0x008000 }); // 
 const enemyCube4 = new THREE.Mesh(enemyCubeGeometry4, enemyCubeMaterial4);
 enemyCube4.position.set(19.45, 4.67, 0);
 scene.add(enemyCube4);
+
 
 let enemyCube3_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 enemyCube3_bb.setFromObject(enemyCube3);
@@ -845,8 +886,8 @@ raft2.position.set(3, -0.9, 0); //next to big bro
 scene.add(raft2);
 
 //second cube
-const whiteCubeGeometry = new THREE.BoxGeometry(0, 0, 0); // Reduced size
-const whiteCubeMaterial = new THREE.MeshBasicMaterial({ color: 0xefddbb });
+const whiteCubeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8); // Reduced size
+const whiteCubeMaterial = new THREE.MeshBasicMaterial({ color: 0xefddbb, visible: false,});
 const lilbro = new THREE.Mesh(whiteCubeGeometry, whiteCubeMaterial);
 lilbro.position.set(3, -0.5, 0); //above smaller raft
 scene.add(lilbro);
@@ -854,11 +895,9 @@ loader.load('/assets/duck.gltf',
     function ( gltf ) {
         let duck = gltf.scene;
         scene.add( duck );
-        // scene.remove(cube);
         gltf.scene.position.set(-0.1, -0.2, 1.1);
         gltf.scene.scale.set(0.65, 0.65, 0.65);
         gltf.scene.rotation.y = Math.PI / 2.5;
-
         lilbro.add(duck);
     },
     function ( xhr ) {
@@ -868,6 +907,7 @@ loader.load('/assets/duck.gltf',
         console.log( 'An error happened', error );
     }
 );
+
 
 raft2.position.x = -6.8
 lilbro.position.x = -6.8
@@ -887,30 +927,11 @@ const enemyRaft1 = new THREE.Mesh(enemyRaftGeometry1, enemyRaftMaterial1);
 enemyRaft1.position.set(17, -0.9, 0);
 scene.add(enemyRaft1);
 
-// enemy 1
-const enemyCubeGeometry1 = new THREE.BoxGeometry(0, 0, 0);
+const enemyCubeGeometry1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 const enemyCubeMaterial1 = new THREE.MeshBasicMaterial({ color: 0x2F4F4F }); // Dark slate gray color
 const enemyCube1 = new THREE.Mesh(enemyCubeGeometry1, enemyCubeMaterial1);
 enemyCube1.position.set(17, -0.5, 0);
 scene.add(enemyCube1);
-loader.load('/assets/bear.gltf',
-    function ( gltf ) {
-        let enemy1 = gltf.scene;
-        scene.add( enemy1 );
-        // scene.remove(cube);
-        gltf.scene.position.set(0, -0.3, 0);
-        gltf.scene.scale.set(1, 1, 1);
-        gltf.scene.rotation.y = Math.PI / (-2.5);
-
-        enemyCube1.add(enemy1);
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
 
 //enemy2 raft
 const enemyRaftGeometry2 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
@@ -919,30 +940,11 @@ const enemyRaft2 = new THREE.Mesh(enemyRaftGeometry2, enemyRaftMaterial2);
 enemyRaft2.position.set(20, -0.9, 0);
 scene.add(enemyRaft2);
 
-// enemy 2
-const enemyCubeGeometry2 = new THREE.BoxGeometry(0, 0, 0);
+const enemyCubeGeometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 const enemyCubeMaterial2 = new THREE.MeshBasicMaterial({ color: 0x4B0082 }); // Indigo color
 const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
 enemyCube2.position.set(20, -0.5, 0);
 scene.add(enemyCube2);
-loader.load('/assets/bear.gltf',
-    function ( gltf ) {
-        let enemy2 = gltf.scene;
-        scene.add( enemy2 );
-        // scene.remove(cube);
-        gltf.scene.position.set(3, -0.3, 0);
-        gltf.scene.scale.set(0.65, 0.65, 0.65);
-        gltf.scene.rotation.y = Math.PI / (-2.5);
-
-        enemyCube1.add(enemy2);
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
 
 // bounding boxes for collision
 
@@ -1495,7 +1497,7 @@ let maxWidth1 = 1.8; // Maximum width of the big bro health bar
 let maxWidth2 = 1.8;
 let maxWidth3 = 1.8;
 let maxWidth4 = 1.8;
-let maxWidth5 = 1.8; // For Enemy 3 (purple cube)
+let maxWidth5 = 100000; // For Enemy 3 (purple cube)
 let maxWidth6 = 100000000; // For Enemy 4 (green cube) - BRO IS THANOS (HE KEEPS GETTING ONE SHOT SO I UPPED HIS HEALTH LOLOL)
 
 const originalPositions = {
@@ -1519,47 +1521,53 @@ const originalPositions = {
 
 function startLevel2() {
     currentLevel = 2;
-    
+    removeEnemies();
     // Show level 2 assets
     if (pirateShip) pirateShip.visible = true;
     if (log) log.visible = true;
     
-    // Show level 2 enemies
-    enemyCube3.position.set(14, -0.1, 0); 
-    healthBar5.position.set(14, 1.8, 0);  
+    // Position and show enemy3 (pirate)
+    enemyCube3.position.set(14, -0.6, 0);
+    enemyCube3.visible = true;
+    if (pirateModel) pirateModel.visible = true;
+    
+    // Update health bar positions
+    healthBar5.position.set(14, 1.2, 0);
     line5.position.copy(healthBar5.position);
     
-    originalPositions.enemy3 = new THREE.Vector3(14, -0.1, 0);
-    originalPositions.healthBar5 = new THREE.Vector3(14, 1.8, 0);
-    originalPositions.line5 = new THREE.Vector3(14, 1.8, 0);
+    // Store original positions for return movement
+    originalPositions.enemy3 = new THREE.Vector3(14, -0.6, 0);
+    originalPositions.healthBar5 = new THREE.Vector3(14, 1.2, 0);
+    originalPositions.line5 = new THREE.Vector3(14, 1.2, 0);
     
-    // Make sure enemy cannon is visible and in correct position
+    // Update enemy cannon position
     enemyCannon.visible = true;
     enemyCannon.position.set(enemy3CannonPosition.x, enemy3CannonPosition.y, enemy3CannonPosition.z);
     
-    enemyCube3.visible = true;
+    // Show health bars and collision boxes
     healthBar5.visible = true;
     line5.visible = true;
     enemyCube4.visible = true;
     healthBar6.visible = true;
     line6.visible = true;
     
-    // Reset health bars for level 2
-    maxWidth5 = 1.8;
+    // Reset health bars
+    maxWidth5 = 20; //THIS LSOER KEEPS GETTING 1 SHOT HOW
     maxWidth6 = 100000;
-    healthBar5.scale.set(maxWidth5, 1, 1);
+    maxWidth3 = 1.8;
+    healthBar5.scale.set(1.8, 1, 1);
     healthBar6.scale.set(1.8, 1, 1);
-    line5.scale.set(maxWidth5, 1, 1);
+    line5.scale.set(1.8, 1, 1);
     line6.scale.set(1.8, 1, 1);
     
     // Reset health bar colors
     healthBar5.material.color.set(0x228B22);
     healthBar6.material.color.set(0x228B22);
     
-    // Remove all text objects
+    // Remove existing text objects
     removeAllTextObjects();
     
-    // Start camera transition sequence
+    // Start camera transition
     const enemyViewPosition = new THREE.Vector3(25, 0, 9);
     const transitionDuration = 2;
     const startTime = clock.getElapsedTime();
@@ -1584,7 +1592,6 @@ function startLevel2() {
     controls.enabled = false;
     transitionCamera();
 }
-
 function createNextLevelText() {
     fontLoader.load(
         './fonts/Luckiest Guy_Regular.json',
@@ -1789,8 +1796,11 @@ function collision() {
         );
 
         maxWidth5 -= health_val;
-        healthBar5.scale.set(maxWidth5, 1, 1);
-        line5.scale.set(maxWidth5, 1, 1);
+        healthBar5.scale.set(1.8, 1, 1);
+        line5.scale.set(1.8, 1, 1);
+
+        enemyCube3.scale.set(1, 1, 1);  
+
 
         if (maxWidth5 > 0.1) {
             if (maxWidth5 <= 0.7 && maxWidth5 > 0.3) {
@@ -2042,11 +2052,11 @@ function updatePhysics(deltaTime) {
             }
         }
     }
+
     if (isEnemy3Flying) {
         enemy3Velocity.y += ENEMY4_GRAVITY * deltaTime;
         
-        // Apply horizontal friction when on the log
-        if (enemyCube3.position.y <= -0.08 && enemyCube3.position.x <= 16) {
+        if (enemyCube3.position.y <= -0.58 && enemyCube3.position.x <= 16) {
             const friction = 0.95;
             enemy3Velocity.x *= friction;
         }
@@ -2058,10 +2068,9 @@ function updatePhysics(deltaTime) {
         healthBar5.position.y = enemyCube3.position.y + 1.8;
         line5.position.copy(healthBar5.position);
     
-        // Check for collision with log - only if within log bounds
-        if (enemyCube3.position.y <= -0.08 && enemyCube3.position.x <= 17.4) {
+        if (enemyCube3.position.y <= -0.58 && enemyCube3.position.x <= 17) {
             enemy3Velocity.y = Math.abs(enemy3Velocity.y) * 0.5;
-            enemyCube3.position.y = -0.08;
+            enemyCube3.position.y = -0.58;
     
             if (Math.abs(enemy3Velocity.x) < 0.1 && Math.abs(enemy3Velocity.y) < 0.1) {
                 isEnemy3Flying = false;
@@ -2076,7 +2085,6 @@ function updatePhysics(deltaTime) {
             }
         }
     
-        // Check for water collision
         if (enemyCube3.position.y <= water.position.y) {
             isEnemy3Flying = false;
             createSplash(enemyCube3.position.clone());
@@ -2085,13 +2093,6 @@ function updatePhysics(deltaTime) {
             enemyCube3.visible = false;
             healthBar5.visible = false;
             line5.visible = false;
-            
-            // if (maxWidth5 <= 0.1) {
-                
-            // } 
-            // else {
-            //     isEnemy3MovingBack = true;
-            // }
         }
     }
     if (isPlayerFlying) {
