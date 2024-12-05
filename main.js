@@ -385,8 +385,8 @@ const waterShaderMaterial = new THREE.ShaderMaterial({
         uTime: { value: 0 },
         uColor: { value: new THREE.Color(0x1ca3ec) }, // Base water color
         uWaveSpeed: { value: 1.0 }, // Speed of the wave
-        uWaveHeight: { value: 0.1 }, // Height of the wave
-        uWaveFrequency: { value: 2.0 }, // Frequency of the wave
+        uWaveHeight: { value: 0.25 }, // Height of the wave
+        uWaveFrequency: { value: 0.7 }, // Frequency of the wave
         uReflectivity: { value: 0.1 }, // Reflectivity intensity
         uSkyColor: { value: new THREE.Color(0x87CEEB) } // Sky color for reflection
     },
@@ -591,6 +591,12 @@ const enemy3CannonPosition = {
     x: 14,     
     y: -0.32,  
     z: 0.64    
+};
+
+const enemy4CannonPosition = {
+    x: 19.45,
+    y: 4.67,
+    z: 0.64
 };
 function showGameOverText(message, color) {
     fontLoader.load(
@@ -1495,8 +1501,8 @@ function updateSplash() {
 let health_val = 0.3; // health value for big bro
 let maxWidth1 = 1.8; // Maximum width of the big bro health bar
 let maxWidth2 = 1.8;
-let maxWidth3 = 1.8;
-let maxWidth4 = 1.8;
+let maxWidth3 = .1;
+let maxWidth4 = .1;
 let maxWidth5 = 100000; // For Enemy 3 (purple cube)
 let maxWidth6 = 100000000; // For Enemy 4 (green cube) - BRO IS THANOS (HE KEEPS GETTING ONE SHOT SO I UPPED HIS HEALTH LOLOL)
 
@@ -2057,7 +2063,7 @@ function updatePhysics(deltaTime) {
         enemy3Velocity.y += ENEMY4_GRAVITY * deltaTime;
         
         if (enemyCube3.position.y <= -0.58 && enemyCube3.position.x <= 16) {
-            const friction = 0.95;
+            const friction = 0.65;
             enemy3Velocity.x *= friction;
         }
         
