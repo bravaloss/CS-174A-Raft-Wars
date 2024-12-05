@@ -158,16 +158,14 @@ const font = fontLoader.load(
     
 );
 
+// raft for big bro
 loader.load('./assets/raft_by_henri/scene.gltf',
     function ( gltf ) {
         scene.add( gltf.scene );
         scene.remove(raft);
+        
         gltf.scene.position.set(-5, -0.5, 0);
-
-        // gltf.scene.rotation.z = -Math.PI / 2;
-
         gltf.scene.rotation.y = Math.PI / 2; 
-        // gltf.scene.rotation.x = -Math.PI / 4; // Tilt up 45 degrees
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
         scene.add(ambientLight);
@@ -188,19 +186,12 @@ loader.load('./assets/raft_by_henri/scene.gltf',
     }
 );
 
-
-//enemy raft 1 gltf  17, -0.9, 0
-loader.load('./assets/jangada_de_bambu_bamboo_raft/scene.gltf',
+// raft for lil bro
+loader.load('./assets/duck_floatie/scene.gltf',
     function ( gltf ) {
         scene.add( gltf.scene );
-        scene.remove(enemyRaft1);
-        gltf.scene.position.set(17, -.8, -.5);
-        gltf.scene.scale.set(0.1, 0.1, 0.1);
-
-        // gltf.scene.rotation.z = -Math.PI / 2;
-
-        // gltf.scene.rotation.y = Math.PI / 2; 
-        // gltf.scene.rotation.x = -Math.PI / 4; // Tilt up 45 degrees
+        scene.remove(raft2);
+        gltf.scene.position.set(-8, -0.5, 0);
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
         scene.add(ambientLight);
@@ -209,7 +200,7 @@ loader.load('./assets/jangada_de_bambu_bamboo_raft/scene.gltf',
         const originalAnimate = animate;
         animate = function() {
             let time = clock.getElapsedTime();
-            gltf.scene.position.y = -.8 + Math.sin(time * 2) * 0.1;
+            gltf.scene.position.y = -1 + Math.sin(time * 2) * 0.1;
             originalAnimate();
         }
     },
@@ -224,14 +215,15 @@ loader.load('./assets/jangada_de_bambu_bamboo_raft/scene.gltf',
 loader.load('./assets/raft/scene.gltf',
     function ( gltf ) {
         scene.add( gltf.scene );
-        scene.remove(raft);
-        gltf.scene.position.set(-6, -0.9, 0)
-        gltf.scene.scale(0.5,0.3,0.5);
+        scene.remove(enemyRaft2);
+        scene.remove(enemyRaft1);
+        gltf.scene.position.set(21, -0.9, 0)
+        gltf.scene.scale.set(2, 1.5, 0.9);
 
         // Rotate the raft 90 degrees around the Y-axis and tilt it up 45 degrees
         // gltf.scene.rotation.z = -Math.PI / 2;
 
-        gltf.scene.rotation.y = Math.PI / 2; 
+        gltf.scene.rotation.y = Math.PI; 
         // gltf.scene.rotation.x = -Math.PI / 4; // Tilt up 45 degrees
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -241,7 +233,7 @@ loader.load('./assets/raft/scene.gltf',
         const originalAnimate = animate;
         animate = function() {
             let time = clock.getElapsedTime();
-            gltf.scene.position.y = -0.2 + Math.sin(time * 2) * 0.1;
+            gltf.scene.position.y = -0.9 + Math.sin(time * 2) * 0.1;
             originalAnimate();
         }
     },
@@ -265,6 +257,9 @@ loader.load('./assets/pixel_rocket_launcher/scene.gltf',
         rocketLauncher.position.set(-4, -0.8, 1);
         rocketLauncher.visible = false; // Initially hidden
         scene.add(rocketLauncher);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        scene.add(directionalLight);
  
     },
         
@@ -576,7 +571,7 @@ healthBar1.position.y = 1.8;
 // little bro health bar
 const healthBar2 = new THREE.Mesh(healthBar2Geometry, healthBar2Material); 
 scene.add(healthBar2);
-healthBar2.position.x = -7;
+healthBar2.position.x = -8;
 healthBar2.position.y = 1.8;
 
 // enemy 1 health bar
@@ -588,7 +583,7 @@ healthBar3.position.y = 1.8;
 // enemy 2 health bar
 const healthBar4 = new THREE.Mesh(healthBar4Geometry, healthBar4Material); 
 scene.add(healthBar4);
-healthBar4.position.x = 20;
+healthBar4.position.x = 21;
 healthBar4.position.y = 1.8;
 
 // outlining the health bar
@@ -631,8 +626,8 @@ camera.position.set(-5, 0, 9);
 //below is position for enemy
 // camera.position.set(18, 0, 9);
 
-raft.position.x = -5
-cube.position.x = -5
+raft.position.x = -5;
+cube.position.x = -5;
 
 //smaller raft
 const raftGeometry2 = new THREE.BoxGeometry(1.5, 0.15, 1.5); 
@@ -648,8 +643,8 @@ const whiteCube = new THREE.Mesh(whiteCubeGeometry, whiteCubeMaterial);
 whiteCube.position.set(3, -0.5, 0); //above smaller raft
 scene.add(whiteCube);
 
-raft2.position.x = -6.8
-whiteCube.position.x = -6.8
+raft2.position.x = -6.8;
+whiteCube.position.x = -8;
 
 const islandGeometry = new THREE.CylinderGeometry(5, 7, 1, 32);
 const islandMaterial = new THREE.MeshBasicMaterial({ color: 0xC2B280 }); // Sandy color
@@ -682,7 +677,7 @@ scene.add(enemyRaft2);
 const enemyCubeGeometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 const enemyCubeMaterial2 = new THREE.MeshBasicMaterial({ color: 0x4B0082 }); // Indigo color
 const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
-enemyCube2.position.set(20, -0.5, 0);
+enemyCube2.position.set(21, -0.3, 0);
 scene.add(enemyCube2);
 
 // bounding boxes for collision
@@ -791,7 +786,33 @@ cannon.position.x -= 4.34;
 
 let cannonAngle = 0;
 let enemyCannonAngle = Math.PI; //pointing the opposite direction
-// let enemyCannonAngle = 0;
+
+// create another cannon if the other dies
+const lilBroCannon = cannon.clone();
+lilBroCannon.position.x -= 6.34;
+lilBroCannon.position.z += .64;
+scene.add(lilBroCannon);
+lilBroCannon.visible = false;
+
+const lilBroCannonPosition = {
+    x: lilBroCannon.position.x,
+    y: lilBroCannon.position.y,
+    z: lilBroCannon.position.z,
+};
+
+const enemy2Cannon = enemyCannon.clone();
+enemy2Cannon.position.z += .73;
+enemy2Cannon.position.x += 21.44;
+enemy2Cannon.position.y -= 0.32;
+scene.add(enemy2Cannon);
+enemy2Cannon.visible = false;
+
+const enemy2CannonPosition = {
+    x: enemy2Cannon.position.x,
+    y: enemy2Cannon.position.y,
+    z: enemy2Cannon.position.z,
+};
+
 //function which has the enemy shoot a projectile at a calculated angle based on the distance between the player and the enemy, with a randomized element
 
 
@@ -866,9 +887,17 @@ function fireProjectile(cannonAngle) {
     lastTime = clock.getElapsedTime();
 }
 
+let windDirection = 1; //1 for East, -1 for West
+let windStrength = 0.5; 
+
 function updateWind() {
-    const direction = windDirections[Math.floor(Math.random() * windDirections.length)];
-    const speed = (Math.random() * 10).toFixed(1); // Random number between 0 and 10
+    // Randomly set wind direction
+    windDirection = Math.random() < 0.5 ? -1 : 1;
+    
+    windStrength = 0.8 + Math.random() * 1.2;
+    
+    const direction = windDirection === 1 ? 'E' : 'W';
+    const speed = (windStrength * 10).toFixed(1); 
     windDisplay.textContent = `Wind: ${direction} ${speed}`;
 }
 
@@ -926,6 +955,51 @@ function goToMenu() {
 
     controls.enabled = false; 
     updatePowerDisplayVisibility();
+}
+
+function rotateCannon(cannonItem, cannonLocation, enemyCannonItem, enemyCannonLocation) {
+    cannonItem.position.set(cannonLocation.x, cannonLocation.y, cannonLocation.z);
+    enemyCannonItem.position.set(enemyCannonLocation.x, enemyCannonLocation.y, enemyCannonLocation.z);
+    const pivotX = -0.75;
+    const pivotZ = -0.125;
+
+    const toOrigin = translationMatrix(-pivotX, 0, -pivotZ);
+    const rotation = rotationMatrixZ(cannonAngle);
+    const rotation2 = rotationMatrixY(Math.PI / 2);
+    const scaling = scalingMatrix(0.1, 0.1, 0.1)
+    const fromOrigin = translationMatrix(pivotX, 0, pivotZ);
+    const toPosition = translationMatrix(cannonLocation.x, cannonLocation.y, cannonLocation.z);
+
+    const finalMatrix = new THREE.Matrix4()
+        .multiply(toPosition)
+        .multiply(fromOrigin)
+        .multiply(rotation)
+        .multiply(rotation2)
+        .multiply(toOrigin)
+        .multiply(scaling);
+
+    const enemyPivotX = 0.75;  // Positive to flip the pivot point
+    const enemyToOrigin = translationMatrix(-enemyPivotX, 0, -pivotZ);
+    const enemyRotation = new THREE.Matrix4().multiply(
+        rotationMatrixZ(enemyCannonAngle)
+    ).multiply(
+        rotationMatrixY(Math.PI)  // Rotate 180 around Y axis to face the opposite direction
+    );
+    const enemyFromOrigin = translationMatrix(enemyPivotX, 0, pivotZ);
+    const enemyToPosition = translationMatrix(enemyCannonLocation.x, enemyCannonLocation.y, enemyCannonLocation.z);
+
+    const enemyFinalMatrix = new THREE.Matrix4()
+        .multiply(enemyToPosition)
+        .multiply(enemyFromOrigin)
+        .multiply(enemyRotation)
+        .multiply(enemyToOrigin);
+
+
+    cannonItem.matrix.copy(finalMatrix);
+    cannonItem.matrixAutoUpdate = false;
+
+    enemyCannonItem.matrix.copy(enemyFinalMatrix);
+    enemyCannonItem.matrixAutoUpdate = false;
 }
 
 let currentWeapon = 'cannon';
@@ -999,93 +1073,31 @@ function handleKeyDown(event)
     }
     
 
-    if (currentWeapon === 'rocketLauncher' && rocketLauncher) {
-        rocketLauncher.position.set(rocketLauncherPosition.x, rocketLauncherPosition.y, rocketLauncherPosition.z);
-        enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
-        const pivotX = -0.75;
-        const pivotZ = -0.125;
-    
-        const toOrigin = translationMatrix(-pivotX, 0, -pivotZ);
-        const rotation = rotationMatrixZ(cannonAngle);
-        const rotation2 = rotationMatrixY(Math.PI / 2);
-        const scaling = scalingMatrix(0.1, 0.1, 0.1)
-        const fromOrigin = translationMatrix(pivotX, 0, pivotZ);
-        const toPosition = translationMatrix(rocketLauncherPosition.x, rocketLauncherPosition.y, rocketLauncherPosition.z);
-    
-        const finalMatrix = new THREE.Matrix4()
-            .multiply(toPosition)
-            .multiply(fromOrigin)
-            .multiply(rotation)
-            .multiply(rotation2)
-            .multiply(toOrigin)
-            .multiply(scaling);
-    
-        const enemyPivotX = 0.75;  // Positive to flip the pivot point
-        const enemyToOrigin = translationMatrix(-enemyPivotX, 0, -pivotZ);
-        const enemyRotation = new THREE.Matrix4().multiply(
-            rotationMatrixZ(enemyCannonAngle)
-        ).multiply(
-            rotationMatrixY(Math.PI)  // Rotate 180 around Y axis to face the opposite direction
-        );
-        const enemyFromOrigin = translationMatrix(enemyPivotX, 0, pivotZ);
-        const enemyToPosition = translationMatrix(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
-    
-        const enemyFinalMatrix = new THREE.Matrix4()
-            .multiply(enemyToPosition)
-            .multiply(enemyFromOrigin)
-            .multiply(enemyRotation)
-            .multiply(enemyToOrigin);
-    
-    
-        rocketLauncher.matrix.copy(finalMatrix);
-        rocketLauncher.matrixAutoUpdate = false;
-    
-        enemyCannon.matrix.copy(enemyFinalMatrix);
-        enemyCannon.matrixAutoUpdate = false;
+    if (currentWeapon === 'rocketLauncher' && rocketLauncher && maxWidth1 > 0.1 && maxWidth3 > 0.1) {
+        rotateCannon(rocketLauncher, rocketLauncherPosition, enemyCannon, enemyCannonPosition);
     }
-    else if (currentWeapon === 'cannon' && cannon) {
-        //reset cannon position and apply transformations for pivot rotation
-        cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
-        enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
-        const pivotX = -0.85;
-        const pivotZ = -0.125;
-
-        const toOrigin = translationMatrix(-pivotX, 0, -pivotZ);
-        const rotation = rotationMatrixZ(cannonAngle);
-        const fromOrigin = translationMatrix(pivotX, 0, pivotZ);
-        const toPosition = translationMatrix(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
-
-        const finalMatrix = new THREE.Matrix4()
-            .multiply(toPosition)
-            .multiply(fromOrigin)
-            .multiply(rotation)
-            .multiply(toOrigin);
-
-        const enemyPivotX = 0.75;  // Positive to flip the pivot point
-        const enemyToOrigin = translationMatrix(-enemyPivotX, 0, -pivotZ);
-        const enemyRotation = new THREE.Matrix4().multiply(
-            rotationMatrixZ(enemyCannonAngle)
-        ).multiply(
-            rotationMatrixY(Math.PI)  // Rotate 180 around Y axis to face the opposite direction
-        );
-        const enemyFromOrigin = translationMatrix(enemyPivotX, 0, pivotZ);
-        const enemyToPosition = translationMatrix(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
-
-        const enemyFinalMatrix = new THREE.Matrix4()
-            .multiply(enemyToPosition)
-            .multiply(enemyFromOrigin)
-            .multiply(enemyRotation)
-            .multiply(enemyToOrigin);
-
-
-        cannon.matrix.copy(finalMatrix);
-        cannon.matrixAutoUpdate = false;
-        // enemyCannon.matrix.copy(finalMatrix);
-        // enemyCannon.matrixAutoUpdate = false;
-
-        enemyCannon.matrix.copy(enemyFinalMatrix);
-        enemyCannon.matrixAutoUpdate = false;
+    else if (currentWeapon === 'rocketLauncher' && rocketLauncher && maxWidth1 > 0.1 && maxWidth3 <= 0.1) {
+        rotateCannon(rocketLauncher, rocketLauncherPosition, enemy2Cannon, enemy2CannonPosition);
     }
+    else if (currentWeapon === 'rocketLauncher' && rocketLauncher && maxWidth1 <= 0.1 && maxWidth3 > 0.1) {
+        rotateCannon(lilBroCannon, lilBroCannonPosition, enemyCannon, enemyCannonPosition);
+    }
+    else if (currentWeapon === 'rocketLauncher' && rocketLauncher && maxWidth1 <= 0.1 && maxWidth3 <= 0.1) {
+        rotateCannon(lilBroCannon, lilBroCannonPosition, enemy2Cannon, enemy2CannonPosition);
+    }
+    else if (currentWeapon === 'cannon' && cannon && maxWidth1 > 0.1 && maxWidth3 > 0.1) {
+        rotateCannon(cannon, cannonBasePosition, enemyCannon, enemyCannonPosition);
+    }
+    else if (currentWeapon === 'cannon' && cannon && maxWidth1 > 0.1 && maxWidth3 <= 0.1) {
+        rotateCannon(cannon, cannonBasePosition, enemy2Cannon, enemy2CannonPosition);
+    }
+    else if (currentWeapon === 'cannon' && cannon && maxWidth1 <= 0.1 && maxWidth3 > 0.1) {
+        rotateCannon(lilBroCannon, lilBroCannonPosition, enemyCannon, enemyCannonPosition);
+    }
+    else if (currentWeapon === 'cannon' && cannon && maxWidth1 <= 0.1 && maxWidth3 <= 0.1) {
+        rotateCannon(lilBroCannon, lilBroCannonPosition, enemy2Cannon, enemy2CannonPosition);
+    }
+    
 };
 
 cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
@@ -1214,12 +1226,65 @@ function updateSplash() {
     }
 }
 
+
+function showGameOverText(message, color) {
+    fontLoader.load(
+        './fonts/Luckiest Guy_Regular.json',
+        function (font) {
+            const textGeometry = new TextGeometry(message, {
+                font: font,
+                size: 5,
+                height: 1,
+            });
+
+            const textMaterial = new THREE.MeshPhongMaterial({ color: color });
+            const gameOverText = new THREE.Mesh(textGeometry, textMaterial);
+
+            textGeometry.computeBoundingBox();
+            const textWidth = textGeometry.boundingBox.max.x - textGeometry.boundingBox.min.x;
+            
+
+            gameOverText.position.set(-5 - textWidth/2, 5, -10);
+
+            scene.add(gameOverText);
+
+            // Disable controls
+            controls.enabled = false;
+            window.removeEventListener('keydown', handleKeyDown);
+        }
+    );
+}
+
+
+function checkGameState() {
+    // Check for defeat (player and lil bro are both defeated)
+    if (maxWidth1 <= 0.1 && maxWidth2 <= 0.1) {
+        showGameOverText('Game Over!', 0xff0000); // Red text for loss
+        return true;
+    }
+    
+    // Check for victory (both enemies are defeated)
+    if (maxWidth3 <= 0.1 && maxWidth4 <= 0.1) {
+        showGameOverText('You Won!', 0x00ff00); // Green text for win
+        return true;
+    }
+    
+    return false;
+}
+
+
 // Function to create collision between cannon ball and enemy
 let health_val = 0.3; // health value for big bro
 let maxWidth1 = 1.8; // Maximum width of the big bro health bar
 let maxWidth2 = 1.8;
 let maxWidth3 = 1.8;
 let maxWidth4 = 1.8;
+
+let isPlayerMovingBack = false;
+let isEnemy1MovingBack = false;
+let isEnemy2MovingBack = false;
+let isEnemy3MovingBack = false;
+let isLilBroMovingBack = false;
 
 function collision() {
 
@@ -1257,6 +1322,11 @@ function collision() {
         }
 
         enemyCube2_bb.setFromObject(enemyCube2);
+
+        // Start moving back after 3 seconds
+        setTimeout(() => {
+            isEnemy2MovingBack = true;
+        }, 1000);
     } 
 
     else if (projectile && cannonball_bb.intersectsBox(enemyCube1_bb)) {
@@ -1281,9 +1351,19 @@ function collision() {
             enemyCube1.visible = false;
             healthBar3.visible = false;
             line3.visible = false;
+
+            // Move enemyCannon to enemy2Cannon position
+            enemyCannon.visible = false;
+            enemy2Cannon.position.copy(enemyCube2.position);
+            enemy2Cannon.visible = true;
         }
 
         enemyCube1_bb.setFromObject(enemyCube1);
+
+        // Start moving back after 3 seconds
+        setTimeout(() => {
+            isEnemy1MovingBack = true;
+        }, 1000);
 
         // after moving the enemyCube1, check for collision with the enemyCube2
         if (enemyCube1_bb.intersectsBox(enemyCube2_bb)) {
@@ -1313,8 +1393,14 @@ function collision() {
 
             //update the enemyCube2 bounding box
             enemyCube2_bb.setFromObject(enemyCube2);
+
+             // Start moving back after 3 seconds
+             setTimeout(() => {
+                isEnemy2MovingBack = true;
+            }, 1000);
         }
     }
+    checkGameState();
 }
 
 function enemyCollision() {
@@ -1351,6 +1437,11 @@ function enemyCollision() {
             cube.visible = false;
             healthBar1.visible = false;
             line1.visible = false;
+
+            // Move enemyCannon to enemy2Cannon position
+            enemyCannon.visible = false;
+            enemy2Cannon.position.copy(enemyCube2.position);
+            enemy2Cannon.visible = true;
         }
 
         //update the big cube's bounding box
@@ -1359,6 +1450,11 @@ function enemyCollision() {
         
         scene.remove(enemyProjectile);
         enemyProjectile = null;
+
+        // Start moving back after 1 second
+        setTimeout(() => {
+            isPlayerMovingBack = true;
+        }, 1000);
 
         // after moving the big cube, check for collision with the second cube
         if (cube_bb.intersectsBox(whiteCube_bb)) {
@@ -1388,6 +1484,11 @@ function enemyCollision() {
 
             //update the second cube's bounding box
             whiteCube_bb.setFromObject(whiteCube);
+
+             // Start moving back after 1 second
+             setTimeout(() => {
+                isLilBroMovingBack = true;
+            }, 1000);
         }
     } 
     //collision with second box
@@ -1417,17 +1518,13 @@ function enemyCollision() {
 
         //update the second cube's bounding box
         whiteCube_bb.setFromObject(whiteCube);
-        // scene.remove(enemyProjectile);
-        // enemyProjectile = null;
-    }
-    // //check for collision with the raft
-    // else if (enemyProjectile_bb.intersectsBox(raft_bb)) {
-    //     console.log("Enemy projectile hit the raft!");
 
-    //     //remove the enemy projectile
-    //     scene.remove(enemyProjectile);
-    //     enemyProjectile = null;
-    // }
+        // Start moving back after 1 second
+        setTimeout(() => {
+            isLilBroMovingBack = true;
+        }, 1000);
+    }
+    checkGameState();
 }
 
 
@@ -1498,21 +1595,21 @@ function animate() {
     // Handle enemy cannon rotation
 
 
-    let windForce = new THREE.Vector3(0.1, 0, 0); // Initial wind force
-    let time = 0; // To control the wind over time
-     // Simulate wind variation (optional, using Math.sin for simplicity)
-    time += 0.01; // Increment time
-    windForce.x = 0.03 * Math.sin(time) - 0.02; // Wind force in the x-direction
-    windForce.y = 0.03 * Math.cos(time) - 0.02; // Wind force in the y-direction
-    projectile.position.add(windForce);
+    clouds.forEach((cloud) => {
+        
+        cloud.position.x += windDirection * windStrength * 0.01;
+        
+        if (windDirection === 1) {
+            if (cloud.position.x > 70) {
+                cloud.position.x = -70;
+            }
+        } else {
+            if (cloud.position.x < -40) {
+                cloud.position.x = 40;
+            }
+        }
+    });
 
-    // Keep the object within bounds 
-    if (projectile.position.x > 5 || projectile.position.x < -5) {
-        windForce.x *= -1; // Reverse wind direction
-    }
-    if (projectile.position.y > 5 || projectile.position.y < -5) {
-        windForce.y *= -1; // Reverse wind direction
-    }
 
     clouds.forEach((cloud) => {
         cloud.position.x += cloud.userData.speed; // Move based on individual speed
@@ -1570,6 +1667,7 @@ function animate() {
     
     // Update player projectile
     if (isFiring && projectile) {
+        projectileVelocity.x += windDirection * windStrength * deltaTime;
         projectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
         projectile.position.add(projectileVelocity.clone().multiplyScalar(deltaTime));
 
@@ -1591,6 +1689,7 @@ function animate() {
     // Update enemy projectile
     if (enemyProjectile) {
         enemyCollision();
+        enemyProjectileVelocity.x += windDirection * windStrength * deltaTime;
         enemyProjectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
         enemyProjectile.position.add(enemyProjectileVelocity.clone().multiplyScalar(deltaTime));
 
@@ -1608,7 +1707,7 @@ function animate() {
 
     updateSplash();
 
-    time = clock.getElapsedTime();
+    let time = clock.getElapsedTime();
     raft.position.y = -0.9 + Math.sin(time * 2) * 0.1;
     raft2.position.y = -0.9 + Math.sin(time * 6) * 0.1;
     updateCameraPosition(deltaTime);
