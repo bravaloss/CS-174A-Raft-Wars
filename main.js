@@ -26,11 +26,26 @@ let isEnemy3MovingBack = false;
 let isLilBroMovingBack = false;
 let windDirection = 1; //1 for East, -1 for West
 let windStrength = 0.5; 
+let enemyProjectileInitialSpeed = 20;
 let bambooRaft; 
 let isEnemy4Flying = false;
 let enemy4Velocity = new THREE.Vector3();
 const KNOCKBACK_FORCE = 2; 
 const ENEMY4_GRAVITY = -9.8;
+const GRAVITY = -9.8;
+let isEnemy1Flying = false;
+let isEnemy2Flying = false;
+let isEnemy3Flying = false;
+let isLilBroFlying = false;
+let isPlayerFlying = false;
+
+let enemy1Velocity = new THREE.Vector3();
+let enemy2Velocity = new THREE.Vector3();
+let lilBroVelocity = new THREE.Vector3();
+let playerVelocity = new THREE.Vector3();
+let enemy3Velocity = new THREE.Vector3();
+
+
 let currentLevel = 1;
 let pirateShip, log; // Store references to level 2 assets
 let hasCreatedNextLevelText = false;
@@ -365,7 +380,6 @@ const zAxis = createAxisLine(0x0000ff, new THREE.Vector3(0, 0, 0), new THREE.Vec
 // scene.add(xAxis);
 // scene.add(yAxis);
 // scene.add(zAxis);
-
 const waterShaderMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTime: { value: 0 },
@@ -551,7 +565,7 @@ function playSplashSound() {
 
 function playScreamSound() {
     scream.currentTime = 0;
-    scream.play();
+    // scream.play();
 }
 
 //skibidi toilet
@@ -573,7 +587,11 @@ const enemy2CannonPosition = {
     z: 0.64
 };
 
-
+const enemy3CannonPosition = {
+    x: 14,     
+    y: -0.32,  
+    z: 0.64    
+};
 function showGameOverText(message, color) {
     fontLoader.load(
         './fonts/Luckiest Guy_Regular.json',
@@ -733,7 +751,7 @@ scene.add(line4);
 const enemyCubeGeometry3 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 const enemyCubeMaterial3 = new THREE.MeshBasicMaterial({ color: 0x800080 }); // Purple color
 const enemyCube3 = new THREE.Mesh(enemyCubeGeometry3, enemyCubeMaterial3);
-enemyCube3.position.set(14, -0.1, 0);
+// enemyCube3.position.set(14, -0.1, 0);
 scene.add(enemyCube3);
 
 // Enemy 3 health bar
@@ -748,6 +766,10 @@ const line5 = new THREE.LineSegments(edges5, new THREE.LineBasicMaterial({ color
 line5.position.copy(healthBar5.position);
 scene.add(line5);
 
+
+enemyCube3.position.set(1000, 1000, 0); // Move it far away initially
+healthBar5.position.set(1000, 1002, 0); // Health bar follows
+line5.position.set(1000, 1002, 0); // Outline follows
 
 const enemyCubeGeometry4 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
 const enemyCubeMaterial4 = new THREE.MeshBasicMaterial({ color: 0x008000 }); // Green color
@@ -959,37 +981,33 @@ let enemyCannonAngle = Math.PI; //pointing the opposite direction
 
 
 function fireEnemyProjectile(cannonAngle) {
-    
     if (enemyProjectile) {
         scene.remove(enemyProjectile);
     }
 
-    //create enmy projectile
     const projectileGeometry = new THREE.SphereGeometry(0.1, 8, 8);
     const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
     enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
 
+    // Get the appropriate cannon position based on current level
+    const currentCannonPosition = currentLevel === 2 ? enemy3CannonPosition : enemyCannonPosition;
+
     const cannonLength = 0.75;
     const cannonEndPosition = new THREE.Vector3(
-        enemyCannonPosition.x + Math.cos(cannonAngle) * cannonLength,
-        enemyCannonPosition.y + Math.sin(cannonAngle) * cannonLength,
-        enemyCannonPosition.z
+        currentCannonPosition.x + Math.cos(cannonAngle) * cannonLength,
+        currentCannonPosition.y + Math.sin(cannonAngle) * cannonLength,
+        currentCannonPosition.z
     );
 
-    // Initial position of the enemy projectile
     enemyProjectile.position.copy(cannonEndPosition);
     enemyProjectile.position.y += 0.16;
     enemyProjectile.position.z -= 0.5;
 
-    const speed = 10000000000;
-
-    //
     enemyProjectileVelocity.set(
-        Math.cos(cannonAngle) * initialSpeed,
-        Math.sin(cannonAngle) * initialSpeed,
+        Math.cos(cannonAngle) * enemyProjectileInitialSpeed,
+        Math.sin(cannonAngle) * enemyProjectileInitialSpeed,
         0
     );
-
 
     scene.add(enemyProjectile);
 }
@@ -1047,21 +1065,27 @@ function deg2rad(degrees) {
 
 //function that calculates the angle the enemy cannon should shoot at
 function calculateEnemyCannonAngle() {
+    //random value between 14 and 25
+    const enemyInitialSpeed = Math.random() * (25 - 14) + 14;
+    
     const deltaX = cannon.position.x - enemyCannon.position.x;
     const deltaY = cannon.position.y - enemyCannon.position.y;
     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
 
     const g = 9.8;
-    const vSquared = initialSpeed * initialSpeed;
+    const vSquared = enemyInitialSpeed * enemyInitialSpeed;
     const sin2Theta = (g * distance) / vSquared;
 
     const clampedSin2Theta = Math.max(-1, Math.min(1, sin2Theta));
     const baseAngle = Math.asin(clampedSin2Theta) / 2;
 
     const randomOffset = (Math.random() - 0.5) * deg2rad(15); //random +- 15 degrees offset
+    
+    // Store the random speed to be used when firing
+    enemyProjectileInitialSpeed = enemyInitialSpeed;
+    
     return Math.PI - Math.max(0, Math.min(Math.PI / 2, baseAngle + randomOffset));
 }
-
 
 let isEnemyPreparingToShoot = false; 
 let enemyShootStartTime = null; 
@@ -1398,7 +1422,7 @@ let maxWidth2 = 1.8;
 let maxWidth3 = 1.8;
 let maxWidth4 = 1.8;
 let maxWidth5 = 1.8; // For Enemy 3 (purple cube)
-let maxWidth6 = 1.8; // For Enemy 4 (green cube)
+let maxWidth6 = 100000000; // For Enemy 4 (green cube) - BRO IS THANOS (HE KEEPS GETTING ONE SHOT SO I UPPED HIS HEALTH LOLOL)
 
 const originalPositions = {
     player: new THREE.Vector3(cube.position.x, cube.position.y, cube.position.z),
@@ -1418,6 +1442,7 @@ const originalPositions = {
     line5: new THREE.Vector3(line5.position.x, line5.position.y, line5.position.z),
 };
 
+
 function startLevel2() {
     currentLevel = 2;
     
@@ -1426,6 +1451,18 @@ function startLevel2() {
     if (log) log.visible = true;
     
     // Show level 2 enemies
+    enemyCube3.position.set(14, -0.1, 0); 
+    healthBar5.position.set(14, 1.8, 0);  
+    line5.position.copy(healthBar5.position);
+    
+    originalPositions.enemy3 = new THREE.Vector3(14, -0.1, 0);
+    originalPositions.healthBar5 = new THREE.Vector3(14, 1.8, 0);
+    originalPositions.line5 = new THREE.Vector3(14, 1.8, 0);
+    
+    // Make sure enemy cannon is visible and in correct position
+    enemyCannon.visible = true;
+    enemyCannon.position.set(enemy3CannonPosition.x, enemy3CannonPosition.y, enemy3CannonPosition.z);
+    
     enemyCube3.visible = true;
     healthBar5.visible = true;
     line5.visible = true;
@@ -1435,11 +1472,11 @@ function startLevel2() {
     
     // Reset health bars for level 2
     maxWidth5 = 1.8;
-    maxWidth6 = 1.8;
+    maxWidth6 = 100000;
     healthBar5.scale.set(maxWidth5, 1, 1);
-    healthBar6.scale.set(maxWidth6, 1, 1);
+    healthBar6.scale.set(1.8, 1, 1);
     line5.scale.set(maxWidth5, 1, 1);
-    line6.scale.set(maxWidth6, 1, 1);
+    line6.scale.set(1.8, 1, 1);
     
     // Reset health bar colors
     healthBar5.material.color.set(0x228B22);
@@ -1448,11 +1485,32 @@ function startLevel2() {
     // Remove all text objects
     removeAllTextObjects();
     
-    // Reset camera position
-    camera.position.copy(defaultCameraPosition);
-    camera.rotation.copy(defaultCameraRotation);
-    controls.enabled = true;
+    // Start camera transition sequence
+    const enemyViewPosition = new THREE.Vector3(25, 0, 9);
+    const transitionDuration = 2;
+    const startTime = clock.getElapsedTime();
+    
+    function transitionCamera() {
+        const currentTime = clock.getElapsedTime();
+        const elapsed = currentTime - startTime;
+        
+        if (elapsed < transitionDuration) {
+            camera.position.lerp(enemyViewPosition, 0.05);
+            requestAnimationFrame(transitionCamera);
+        } else if (elapsed < transitionDuration * 2) {
+            camera.position.lerp(defaultCameraPosition, 0.05);
+            requestAnimationFrame(transitionCamera);
+        } else {
+            camera.position.copy(defaultCameraPosition);
+            camera.rotation.copy(defaultCameraRotation);
+            controls.enabled = true;
+        }
+    }
+    
+    controls.enabled = false;
+    transitionCamera();
 }
+
 function createNextLevelText() {
     fontLoader.load(
         './fonts/Luckiest Guy_Regular.json',
@@ -1481,10 +1539,13 @@ function createNextLevelText() {
             // Add click handler for level transition
             nextLevelText.userData.onClick = function() {
                 console.log("Next Level clicked!");
+                removeAllTextObjects();
                 startLevel2();
             };
 
             scene.add(nextLevelText);
+            maxWidth3 = 1.8;
+            maxWidth4 = 1.8;
 
             // Add hover effect handler
             window.addEventListener('mousemove', (event) => {
@@ -1533,7 +1594,7 @@ function checkGameState() {
     if (currentLevel === 1) {
         //win level 1
         if (maxWidth3 <= 0.1 && maxWidth4 <= 0.1) {
-            showGameOverText('Level 1 Complete!', 0x00ff00);
+            showGameOverText('Victory!', 0x00ff00);
             
             if (!hasCreatedNextLevelText) {
                 createNextLevelText();
@@ -1570,8 +1631,8 @@ function handleEnemy4Collision() {
         
        
         maxWidth6 -= health_val;
-        healthBar6.scale.set(maxWidth6, 1, 1);
-        line6.scale.set(maxWidth6, 1, 1);
+        healthBar6.scale.set(1.8, 1, 1);
+        line6.scale.set(1.8, 1, 1);
         
         
         if (maxWidth6 > 0.1) {
@@ -1626,6 +1687,16 @@ function updateEnemy4Physics(deltaTime) {
     }
 }
 
+function updateHealthBarColor(healthBar, width) {
+    if (width <= 0.1) {
+        healthBar.visible = false;
+    } else if (width <= 0.3) {
+        healthBar.material.color.set(0xFF0000);
+    } else if (width <= 0.7) {
+        healthBar.material.color.set(0xFF6600);
+    }
+}
+
 function collision() {
     if (projectile) {
         cannonball_bb.setFromObject(projectile);
@@ -1635,10 +1706,13 @@ function collision() {
     }
     cube_bb.setFromObject(cube);
 
+    // Check collision with Enemy 3 (Purple Cube)
     if (projectile && cannonball_bb.intersectsBox(enemyCube3_bb)) {
-        enemyCube3.position.x += 1;
-        healthBar5.position.x += 1;
-        line5.position.x += 1;
+        enemy3Velocity.set(
+            projectileVelocity.x * 0.2,
+            KNOCKBACK_FORCE,
+            0
+        );
 
         maxWidth5 -= health_val;
         healthBar5.scale.set(maxWidth5, 1, 1);
@@ -1656,18 +1730,15 @@ function collision() {
             line5.visible = false;
         }
 
-        enemyCube3_bb.setFromObject(enemyCube3);
-
-        // Start moving back after 1 second
-        setTimeout(() => {
-            isEnemy3MovingBack = true;
-        }, 1000);
+        isEnemy3Flying = true;
     }
     // Check collision with enemyCube2
-    if (projectile && cannonball_bb.intersectsBox(enemyCube2_bb)) {
-        enemyCube2.position.x += 1;
-        healthBar4.position.x += 1;
-        line4.position.x += 1;
+    else if (projectile && cannonball_bb.intersectsBox(enemyCube2_bb)) {
+        enemy2Velocity.set(
+            projectileVelocity.x * 0.2,
+            KNOCKBACK_FORCE,
+            0
+        );
 
         maxWidth4 -= health_val;
         healthBar4.scale.set(maxWidth4, 1, 1);
@@ -1685,20 +1756,15 @@ function collision() {
             line4.visible = false;
         }
 
-        enemyCube2_bb.setFromObject(enemyCube2);
-
-        // Start moving back after 3 seconds
-        setTimeout(() => {
-            isEnemy2MovingBack = true;
-        }, 1000);
+        isEnemy2Flying = true;
     }
-
     // Check collision with enemyCube1
     else if (projectile && cannonball_bb.intersectsBox(enemyCube1_bb)) {
-        enemyCube1.position.x += 1;
-        healthBar3.position.x += 1;
-        enemyCannon.position.x += 1;
-        line3.position.x += 1;
+        enemy1Velocity.set(
+            projectileVelocity.x * 0.2,
+            KNOCKBACK_FORCE,
+            0
+        );
 
         maxWidth3 -= health_val;
         healthBar3.scale.set(maxWidth3, 1, 1);
@@ -1716,20 +1782,15 @@ function collision() {
             line3.visible = false;
         }
 
-        enemyCube1_bb.setFromObject(enemyCube1);
+        isEnemy1Flying = true;
 
-        // Start moving back after 3 seconds
-        setTimeout(() => {
-            isEnemy1MovingBack = true;
-        }, 1000);
-
-        // Check for collision between enemyCube1 and enemyCube2
+        // Check for collision chain with enemyCube2
         if (enemyCube1_bb.intersectsBox(enemyCube2_bb)) {
-            console.log("Big cube collided with the second cube!");
-
-            enemyCube2.position.x += 1;
-            healthBar4.position.x += 1;
-            line4.position.x += 1;
+            enemy2Velocity.set(
+                projectileVelocity.x * 0.2,
+                KNOCKBACK_FORCE,
+                0
+            );
 
             maxWidth4 -= health_val;
             healthBar4.scale.set(maxWidth4, 1, 1);
@@ -1747,19 +1808,14 @@ function collision() {
                 line4.visible = false;
             }
 
-            // Update the bounding box for enemyCube2
-            enemyCube2_bb.setFromObject(enemyCube2);
-
-            // Start moving back after 3 seconds
-            setTimeout(() => {
-                isEnemy2MovingBack = true;
-            }, 1000);
+            isEnemy2Flying = true;
         }
     }
+
     handleEnemy4Collision();
     checkGameState();
-
 }
+
 
 enemyCube3.visible = false;
 healthBar5.visible = false;
@@ -1769,21 +1825,17 @@ healthBar6.visible = false;
 line6.visible = false;
 
 function enemyCollision() {
-    //bounding boxes for the enemy projectile and player's assets
     let enemyProjectile_bb = new THREE.Box3().setFromObject(enemyProjectile);
-    let raft_bb = new THREE.Box3().setFromObject(raft);
     let cube_bb = new THREE.Box3().setFromObject(cube);
-    let whiteCube_bb = new THREE.Box3().setFromObject(lilbro); 
+    let whiteCube_bb = new THREE.Box3().setFromObject(lilbro);
 
-    //checking collision with big cube
+    // Check collision between enemy projectile and player
     if (enemyProjectile_bb.intersectsBox(cube_bb)) {
-        console.log("Enemy projectile hit the big cube!");
-
-        //move big bro back
-        cube.position.x -= 1;
-        healthBar1.position.x -= 1;
-        cannon.position.x -= 1;
-        line1.position.x -= 1;
+        playerVelocity.set(
+            enemyProjectileVelocity.x * 0.2,
+            KNOCKBACK_FORCE,
+            0
+        );
 
         maxWidth1 -= health_val;
         healthBar1.scale.set(maxWidth1, 1, 1);
@@ -1792,34 +1844,26 @@ function enemyCollision() {
         if (maxWidth1 > 0.1) {
             if (maxWidth1 <= 0.7 && maxWidth1 > 0.3) {
                 healthBar1.material.color.set(0xFF6600);
-            }
-            else if (maxWidth1 <= 0.3 && maxWidth1 >= 0.1) {
+            } else if (maxWidth1 <= 0.3 && maxWidth1 >= 0.1) {
                 healthBar1.material.color.set(0xFF0000);
             }
-        }
-        else if (maxWidth1 <= 0.1) {
+        } else if (maxWidth1 <= 0.1) {
             cube.visible = false;
             healthBar1.visible = false;
             line1.visible = false;
         }
 
-        cube_bb.setFromObject(cube);
-        
+        isPlayerFlying = true;
         scene.remove(enemyProjectile);
         enemyProjectile = null;
 
-        // Start moving back after 1 second
-        setTimeout(() => {
-            isPlayerMovingBack = true;
-        }, 1000);
-
-        // Check for collision with lil bro
+        // Check if the player also collides with lil bro
         if (cube_bb.intersectsBox(whiteCube_bb)) {
-            console.log("Big cube collided with the lil bro!");
-
-            lilbro.position.x -= 1;
-            healthBar2.position.x -= 1;
-            line2.position.x -= 1;
+            lilBroVelocity.set(
+                enemyProjectileVelocity.x * 0.2,
+                KNOCKBACK_FORCE,
+                0
+            );
 
             maxWidth2 -= health_val;
             healthBar2.scale.set(maxWidth2, 1, 1);
@@ -1828,31 +1872,25 @@ function enemyCollision() {
             if (maxWidth2 > 0.1) {
                 if (maxWidth2 <= 0.7 && maxWidth2 > 0.3) {
                     healthBar2.material.color.set(0xFF6600);
-                }
-                else if (maxWidth2 <= 0.3 && maxWidth2 >= 0.1) {
+                } else if (maxWidth2 <= 0.3 && maxWidth2 >= 0.1) {
                     healthBar2.material.color.set(0xFF0000);
                 }
-            }
-            else if (maxWidth2 <= 0.1) {
+            } else if (maxWidth2 <= 0.1) {
                 lilbro.visible = false;
                 healthBar2.visible = false;
                 line2.visible = false;
             }
 
-            whiteCube_bb.setFromObject(lilbro);
-            
-            // Start moving back after 1 second
-            setTimeout(() => {
-                isLilBroMovingBack = true;
-            }, 1000);
+            isLilBroFlying = true;
         }
-    } 
-    //collision with lil bro
+    }
+    // Check collision between enemy projectile and lil bro directly
     else if (enemyProjectile_bb.intersectsBox(whiteCube_bb)) {
-        console.log("Enemy projectile hit lil bro!");
-        lilbro.position.x -= 1;
-        healthBar2.position.x -= 1;
-        line2.position.x -= 1;
+        lilBroVelocity.set(
+            enemyProjectileVelocity.x * 0.2,
+            KNOCKBACK_FORCE,
+            0
+        );
 
         maxWidth2 -= health_val;
         healthBar2.scale.set(maxWidth2, 1, 1);
@@ -1861,30 +1899,201 @@ function enemyCollision() {
         if (maxWidth2 > 0.1) {
             if (maxWidth2 <= 0.7 && maxWidth2 > 0.3) {
                 healthBar2.material.color.set(0xFF6600);
-            }
-            else if (maxWidth2 <= 0.3 && maxWidth2 >= 0.1) {
+            } else if (maxWidth2 <= 0.3 && maxWidth2 >= 0.1) {
                 healthBar2.material.color.set(0xFF0000);
             }
-        }
-        else if (maxWidth2 <= 0.1) {
+        } else if (maxWidth2 <= 0.1) {
             lilbro.visible = false;
             healthBar2.visible = false;
             line2.visible = false;
         }
 
-        whiteCube_bb.setFromObject(lilbro);
+        isLilBroFlying = true;
         scene.remove(enemyProjectile);
         enemyProjectile = null;
-
-        // Start moving back after 1 second
-        setTimeout(() => {
-            isLilBroMovingBack = true;
-        }, 1000);
     }
-    checkGameState();
-
 }
 
+function updatePhysics(deltaTime) {
+    if (isEnemy1Flying) {
+        enemy1Velocity.y += ENEMY4_GRAVITY * deltaTime;
+        enemyCube1.position.x += enemy1Velocity.x * deltaTime;
+        enemyCube1.position.y += enemy1Velocity.y * deltaTime;
+        
+        healthBar3.position.x = enemyCube1.position.x;
+        healthBar3.position.y = enemyCube1.position.y + 1.8;
+        line3.position.copy(healthBar3.position);
+        enemyCannon.position.x = enemyCube1.position.x;
+        enemyCannon.position.y = enemyCube1.position.y;
+
+        if (enemyCube1.position.y <= -.5) {
+            isEnemy1Flying = false;
+            enemyCube1.position.y = -0.5;
+            createSplash(enemyCube1.position.clone());
+            playSplashSound();
+            playScreamSound();
+            
+            if (maxWidth3 <= 0.1) {
+                enemyCube1.visible = false;
+                healthBar3.visible = false;
+                line3.visible = false;
+            } else {
+                isEnemy1MovingBack = true;
+            }
+        }
+    }
+
+    if (isEnemy2Flying) {
+        enemy2Velocity.y += ENEMY4_GRAVITY * deltaTime;
+        enemyCube2.position.x += enemy2Velocity.x * deltaTime;
+        enemyCube2.position.y += enemy2Velocity.y * deltaTime;
+        
+        healthBar4.position.x = enemyCube2.position.x;
+        healthBar4.position.y = enemyCube2.position.y + 1.8;
+        line4.position.copy(healthBar4.position);
+
+        if (enemyCube2.position.y <= -.5) {
+            isEnemy2Flying = false;
+            enemyCube2.position.y = -0.5;
+            createSplash(enemyCube2.position.clone());
+            playSplashSound();
+            playScreamSound();
+            
+            if (maxWidth4 <= 0.1) {
+                enemyCube2.visible = false;
+                healthBar4.visible = false;
+                line4.visible = false;
+            } else {
+                isEnemy2MovingBack = true;
+            }
+        }
+    }
+    if (isEnemy3Flying) {
+        enemy3Velocity.y += ENEMY4_GRAVITY * deltaTime;
+        
+        // Apply horizontal friction when on the log
+        if (enemyCube3.position.y <= -0.08 && enemyCube3.position.x <= 16) {
+            const friction = 0.95;
+            enemy3Velocity.x *= friction;
+        }
+        
+        enemyCube3.position.x += enemy3Velocity.x * deltaTime;
+        enemyCube3.position.y += enemy3Velocity.y * deltaTime;
+        
+        healthBar5.position.x = enemyCube3.position.x;
+        healthBar5.position.y = enemyCube3.position.y + 1.8;
+        line5.position.copy(healthBar5.position);
+    
+        // Check for collision with log - only if within log bounds
+        if (enemyCube3.position.y <= -0.08 && enemyCube3.position.x <= 17.4) {
+            enemy3Velocity.y = Math.abs(enemy3Velocity.y) * 0.5;
+            enemyCube3.position.y = -0.08;
+    
+            if (Math.abs(enemy3Velocity.x) < 0.1 && Math.abs(enemy3Velocity.y) < 0.1) {
+                isEnemy3Flying = false;
+                enemy3Velocity.set(0, 0, 0);
+                isEnemy3MovingBack = true;
+                
+                if (maxWidth5 <= 0.1) {
+                    enemyCube3.visible = false;
+                    healthBar5.visible = false;
+                    line5.visible = false;
+                }
+            }
+        }
+    
+        // Check for water collision
+        if (enemyCube3.position.y <= water.position.y) {
+            isEnemy3Flying = false;
+            createSplash(enemyCube3.position.clone());
+            playSplashSound();
+            playScreamSound();
+            enemyCube3.visible = false;
+            healthBar5.visible = false;
+            line5.visible = false;
+            
+            // if (maxWidth5 <= 0.1) {
+                
+            // } 
+            // else {
+            //     isEnemy3MovingBack = true;
+            // }
+        }
+    }
+    if (isPlayerFlying) {
+        playerVelocity.y += ENEMY4_GRAVITY * deltaTime;
+        cube.position.x += playerVelocity.x * deltaTime;
+        cube.position.y += playerVelocity.y * deltaTime;
+        
+        healthBar1.position.x = cube.position.x;
+        healthBar1.position.y = cube.position.y + 1.8;
+        line1.position.copy(healthBar1.position);
+        cannon.position.x = cube.position.x;
+        cannon.position.y = cube.position.y;
+
+        if (cube.position.y <= -.25) {
+            isPlayerFlying = false;
+            cube.position.y = -0.5;
+            createSplash(cube.position.clone());
+            playSplashSound();
+            playScreamSound();
+            
+            if (maxWidth1 <= 0.1) {
+                cube.visible = false;
+                healthBar1.visible = false;
+                line1.visible = false;
+            } else {
+                isPlayerMovingBack = true;
+            }
+        }
+    }
+
+    if (isLilBroFlying) {
+        lilBroVelocity.y += ENEMY4_GRAVITY * deltaTime;
+        lilbro.position.x += lilBroVelocity.x * deltaTime;
+        lilbro.position.y += lilBroVelocity.y * deltaTime;
+        
+        healthBar2.position.x = lilbro.position.x;
+        healthBar2.position.y = lilbro.position.y + 1.8;
+        line2.position.copy(healthBar2.position);
+
+        if (lilbro.position.y <= -.43) {
+            isLilBroFlying = false;
+            lilbro.position.y = -0.5;
+            createSplash(lilbro.position.clone());
+            playSplashSound();
+            playScreamSound();
+            
+            if (maxWidth2 <= 0.1) {
+                lilbro.visible = false;
+                healthBar2.visible = false;
+                line2.visible = false;
+            } else {
+                isLilBroMovingBack = true;
+            }
+        }
+    }
+}
+
+
+window.addEventListener('click', (event) => {
+    // Get the mouse position in normalized device coordinates (-1 to +1)
+    const mouse = new THREE.Vector2(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1
+    );
+
+    // Raycast from the camera to the mouse position
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse, camera);
+
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0); 
+    const intersectionPoint = new THREE.Vector3();
+    raycaster.ray.intersectPlane(plane, intersectionPoint);
+
+  
+    console.log(`World coordinates: x = ${intersectionPoint.x}, y = ${intersectionPoint.y}, z = ${intersectionPoint.z}`);
+});
 function removeEnemies() {
     
     if (bambooRaft) scene.remove(bambooRaft);
@@ -1920,7 +2129,6 @@ function removeEnemies() {
 
     console.log('Enemies removed from the scene');
 }
-
 
 camera.add(camera2);
 scene.add(camera);
@@ -1995,20 +2203,24 @@ function animate() {
     whiteCube_bb.setFromObject(lilbro);
     enemyCube1_bb.setFromObject(enemyCube1);
     enemyCube2_bb.setFromObject(enemyCube2);
-
+    enemyCube3_bb.setFromObject(enemyCube3);
+    
     const movementSpeed = 0.004;
+    const playerMovementSpeed = 0.02;  // 5x faster than enemy movement
+
     const currentGameState = checkGameState();
 
     if (isPlayerMovingBack) {
-        cube.position.lerp(originalPositions.player, movementSpeed);
-        healthBar1.position.lerp(originalPositions.healthBar1, movementSpeed);
-        line1.position.lerp(originalPositions.line1, movementSpeed);
+        cube.position.lerp(originalPositions.player, playerMovementSpeed);
+        healthBar1.position.lerp(originalPositions.healthBar1, playerMovementSpeed);
+        line1.position.lerp(originalPositions.line1, playerMovementSpeed);
     
         if (cube.position.distanceTo(originalPositions.player) < 0.01) {
             isPlayerMovingBack = false;
         }
     }
     
+    updatePhysics(deltaTime);
     if (isEnemy1MovingBack) {
         enemyCube1.position.lerp(originalPositions.enemy1, movementSpeed);
         healthBar3.position.lerp(originalPositions.healthBar3, movementSpeed);
@@ -2068,11 +2280,28 @@ function animate() {
         }
     });
 
-    // Only handle enemy cannon logic if the game hasn't been won
+    // Enemy cannon logic
     if (currentGameState === 'playing') {
         if (!isEnemyRotating && isEnemyPreparingToShoot && currentTime - enemyShootStartTime >= 2.3) {
             enemyCannon.visible = true;
             isEnemyRotating = true;
+            
+            // Update enemy cannon position based on level and visible enemies
+            if (currentLevel === 2) {
+                if (enemyCube3.visible) {
+                    enemyCannon.position.set(enemy3CannonPosition.x, enemy3CannonPosition.y, enemy3CannonPosition.z);
+                    enemyCannon.visible = true;
+                } else if (enemyCube4.visible) {
+                    enemyCannon.visible = false;
+                }
+            } else {
+                if (enemyCube1.visible) {
+                    enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
+                    enemyCannon.visible = true;
+                } else {
+                    enemyCannon.visible = false;
+                }
+            }
         }
         
         if (isEnemyRotating) {
@@ -2084,6 +2313,19 @@ function animate() {
 
                 const pivotX = 0.75;
                 const pivotZ = -0.125;
+                
+                // Get current cannon position based on level
+                let currentCannonPosition;
+                if (currentLevel === 2 && enemyCube3.visible) {
+                    currentCannonPosition = enemy3CannonPosition;
+                } else if (currentLevel === 1 && enemyCube1.visible) {
+                    currentCannonPosition = enemyCannonPosition;
+                } else {
+                    // If no valid enemy is visible, don't show the cannon
+                    enemyCannon.visible = false;
+                    isEnemyRotating = false;
+                    return;
+                }
 
                 const enemyToOrigin = translationMatrix(-pivotX, 0, -pivotZ);
                 const enemyRotation = new THREE.Matrix4().multiply(
@@ -2092,7 +2334,11 @@ function animate() {
                     rotationMatrixY(Math.PI)
                 );
                 const enemyFromOrigin = translationMatrix(pivotX, 0, pivotZ);
-                const enemyToPosition = translationMatrix(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
+                const enemyToPosition = translationMatrix(
+                    currentCannonPosition.x, 
+                    currentCannonPosition.y, 
+                    currentCannonPosition.z
+                );
 
                 const enemyFinalMatrix = new THREE.Matrix4()
                     .multiply(enemyToPosition)
@@ -2112,6 +2358,7 @@ function animate() {
             playShootSound();
             enemyCannon.visible = false;
             isEnemyPreparingToShoot = false;
+            projectileRemovedTime = null;
         }
     } else if (currentGameState === 'victory') {
         // If game is won, hide enemy cannon and stop all enemy firing states
@@ -2147,7 +2394,6 @@ function animate() {
             playSplashSound();
             scene.remove(enemyProjectile);
             enemyProjectile = null;
-            enemyProjectileRemovedTime = clock.getElapsedTime();
             updateWind();
         }
     }
