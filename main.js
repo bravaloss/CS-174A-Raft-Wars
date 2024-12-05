@@ -670,10 +670,28 @@ controls.maxDistance = 50;
 
 
 //initial cube (big bro)
-const geometry = new THREE.BoxGeometry(1, 1, 1);
+const geometry = new THREE.BoxGeometry(0, 0, 0);
 const material = new THREE.MeshBasicMaterial({ color: 0xefd6a5 });
 const cube = new THREE.Mesh(geometry, material);
 scene.add(cube);
+loader.load('/assets/bear.gltf',
+    function ( gltf ) {
+        let bear = gltf.scene;
+        scene.add( bear );
+        // scene.remove(cube);
+        gltf.scene.position.set(0, -0.6, 0);
+        gltf.scene.scale.set(1, 1, 1);
+        gltf.scene.rotation.y = Math.PI / 2.5;
+
+        cube.add(bear);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 //water
 const waterGeometry = new THREE.PlaneGeometry(500, 500, 100, 100);
@@ -827,11 +845,29 @@ raft2.position.set(3, -0.9, 0); //next to big bro
 scene.add(raft2);
 
 //second cube
-const whiteCubeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8); // Reduced size
+const whiteCubeGeometry = new THREE.BoxGeometry(0, 0, 0); // Reduced size
 const whiteCubeMaterial = new THREE.MeshBasicMaterial({ color: 0xefddbb });
 const lilbro = new THREE.Mesh(whiteCubeGeometry, whiteCubeMaterial);
 lilbro.position.set(3, -0.5, 0); //above smaller raft
 scene.add(lilbro);
+loader.load('/assets/duck.gltf',
+    function ( gltf ) {
+        let duck = gltf.scene;
+        scene.add( duck );
+        // scene.remove(cube);
+        gltf.scene.position.set(-0.1, -0.2, 1.1);
+        gltf.scene.scale.set(0.65, 0.65, 0.65);
+        gltf.scene.rotation.y = Math.PI / 2.5;
+
+        lilbro.add(duck);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 raft2.position.x = -6.8
 lilbro.position.x = -6.8
@@ -851,11 +887,30 @@ const enemyRaft1 = new THREE.Mesh(enemyRaftGeometry1, enemyRaftMaterial1);
 enemyRaft1.position.set(17, -0.9, 0);
 scene.add(enemyRaft1);
 
-const enemyCubeGeometry1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+// enemy 1
+const enemyCubeGeometry1 = new THREE.BoxGeometry(0, 0, 0);
 const enemyCubeMaterial1 = new THREE.MeshBasicMaterial({ color: 0x2F4F4F }); // Dark slate gray color
 const enemyCube1 = new THREE.Mesh(enemyCubeGeometry1, enemyCubeMaterial1);
 enemyCube1.position.set(17, -0.5, 0);
 scene.add(enemyCube1);
+loader.load('/assets/bear.gltf',
+    function ( gltf ) {
+        let enemy1 = gltf.scene;
+        scene.add( enemy1 );
+        // scene.remove(cube);
+        gltf.scene.position.set(0, -0.3, 0);
+        gltf.scene.scale.set(1, 1, 1);
+        gltf.scene.rotation.y = Math.PI / (-2.5);
+
+        enemyCube1.add(enemy1);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 //enemy2 raft
 const enemyRaftGeometry2 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
@@ -864,11 +919,30 @@ const enemyRaft2 = new THREE.Mesh(enemyRaftGeometry2, enemyRaftMaterial2);
 enemyRaft2.position.set(20, -0.9, 0);
 scene.add(enemyRaft2);
 
-const enemyCubeGeometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+// enemy 2
+const enemyCubeGeometry2 = new THREE.BoxGeometry(0, 0, 0);
 const enemyCubeMaterial2 = new THREE.MeshBasicMaterial({ color: 0x4B0082 }); // Indigo color
 const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
 enemyCube2.position.set(20, -0.5, 0);
 scene.add(enemyCube2);
+loader.load('/assets/bear.gltf',
+    function ( gltf ) {
+        let enemy2 = gltf.scene;
+        scene.add( enemy2 );
+        // scene.remove(cube);
+        gltf.scene.position.set(3, -0.3, 0);
+        gltf.scene.scale.set(0.65, 0.65, 0.65);
+        gltf.scene.rotation.y = Math.PI / (-2.5);
+
+        enemyCube1.add(enemy2);
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 // bounding boxes for collision
 
