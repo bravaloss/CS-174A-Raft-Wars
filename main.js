@@ -192,6 +192,31 @@ const font = fontLoader.load(
     
 );
 
+// parrot for into scene
+loader.load('/assets/parrot.glb',
+    function ( gltf ) {
+        let parrot = gltf.scene;
+        scene.add( parrot );
+        parrot.position.set(0, 20, 0);
+        parrot.scale.set(0.1, 0.1, 0.1);
+        parrot.rotation.y = Math.PI / 2; 
+
+  const originalAnimate = animate;
+  animate = function() {
+      let time = clock.getElapsedTime();
+      gltf.scene.position.x = 0.3 * time
+      originalAnimate();
+  }
+        
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
 // raft for big bro
 loader.load('./assets/raft_by_henri/scene.gltf',
     function ( gltf ) {
@@ -833,7 +858,7 @@ loader.load('/assets/bear.gltf',
     }
 );
 //water
-const waterGeometry = new THREE.PlaneGeometry(500, 500, 100, 100);
+const waterGeometry = new THREE.PlaneGeometry(2000, 2000, 400, 400);
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x1ca3ec, side: THREE.DoubleSide });
 const water = new THREE.Mesh(waterGeometry, waterShaderMaterial);
 water.rotation.x = -Math.PI / 2; //makes the water horizontal
