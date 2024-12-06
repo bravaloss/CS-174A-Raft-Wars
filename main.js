@@ -31,6 +31,7 @@ let bambooRaft;
 let isEnemy4Flying = false;
 let enemy4Velocity = new THREE.Vector3();
 const KNOCKBACK_FORCE = 2; 
+const KNOCKBACK_FORCE_BEAR = 0.01;
 const ENEMY4_GRAVITY = -9.8;
 const GRAVITY = -9.8;
 let isEnemy1Flying = false;
@@ -254,7 +255,7 @@ loader.load('./assets/duck_floatie/scene.gltf',
     function ( gltf ) {
         scene.add( gltf.scene );
         scene.remove(raft2);
-        gltf.scene.position.set(-8, -0.5, 0);
+        gltf.scene.position.set(-7.3, -0.5, 0);
         gltf.scene.scale.set(0.5, 0.5, 0.5);
         bambooRaft = gltf.scene; 
 
@@ -744,8 +745,8 @@ healthBar1.position.y = 1.8;
 // little bro health bar
 const healthBar2 = new THREE.Mesh(healthBar2Geometry, healthBar2Material); 
 scene.add(healthBar2);
-healthBar2.position.x = -8;
-healthBar2.position.y = 1.8;
+healthBar2.position.x = -7.3;
+healthBar2.position.y = 1;
 
 // enemy 1 health bar
 const healthBar3 = new THREE.Mesh(healthBar3Geometry, healthBar3Material); 
@@ -921,7 +922,7 @@ loader.load('/assets/duck.gltf',
         let duck = gltf.scene;
         scene.remove(whiteCubeGeometry);
         scene.add( duck );
-        duck.position.set(-7.95, -0.8, 0);
+        duck.position.set(-7.3, -0.8, 0);
         duck.scale.set(0.65, 0.65, 0.65);
         duck.rotation.y = Math.PI / 2.5;
         
@@ -1093,16 +1094,13 @@ const lilBroCannonPosition = {
 };
 
 const enemy2Cannon = enemyCannon.clone();
-enemy2Cannon.position.z += .73;
-enemy2Cannon.position.x += 21.44;
-enemy2Cannon.position.y -= 0.32;
 scene.add(enemy2Cannon);
 enemy2Cannon.visible = false;
 
 const enemy2CannonPosition = {
-    x: enemy2Cannon.position.x,
-    y: enemy2Cannon.position.y,
-    z: enemy2Cannon.position.z,
+    x: 20.3,
+    y: -0.3,
+    z: 0.5,
 };
 
 //function which has the enemy shoot a projectile at a calculated angle based on the distance between the player and the enemy, with a randomized element
@@ -1545,13 +1543,13 @@ function updateSplash() {
 
 
 // Function to create collision between cannon ball and enemy
-let health_val = 0.3; // health value for big bro
+let health_val = 0.1; // health value for big bro
 let maxWidth1 = 1.8; // Maximum width of the big bro health bar
 let maxWidth2 = 1.8;
 let maxWidth3 = 1.8;
 let maxWidth4 = 1.8;
 let maxWidth5 = 1.8; // For Enemy 3 (purple cube)
-let maxWidth6 = 1.8; // For Enemy 4 (green cube) - BRO IS THANOS (HE KEEPS GETTING ONE SHOT SO I UPPED HIS HEALTH LOLOL)
+let maxWidth6 = 1000; // For Enemy 4 (green cube) - BRO IS THANOS (HE KEEPS GETTING ONE SHOT SO I UPPED HIS HEALTH LOLOL)
 
 const originalPositions = {
     player: new THREE.Vector3(cube.position.x, cube.position.y, cube.position.z),
@@ -1645,6 +1643,7 @@ function startLevel2() {
     controls.enabled = false;
     transitionCamera();
 }
+
 function createNextLevelText() {
     fontLoader.load(
         './fonts/Luckiest Guy_Regular.json',
@@ -1765,8 +1764,8 @@ function handleEnemy4Collision() {
         
        
         maxWidth6 -= health_val;
-        healthBar6.scale.set(1.8, 1, 1);
-        line6.scale.set(1.8, 1, 1);
+        healthBar6.scale.set(maxWidth6, 1, 1);
+        line6.scale.set(maxWidth6, 1, 1);
         
         
         if (maxWidth6 > 0.1) {
@@ -1849,8 +1848,8 @@ function collision() {
         );
 
         maxWidth5 -= health_val;
-        healthBar5.scale.set(1.8, 1, 1);
-        line5.scale.set(1.8, 1, 1);
+        healthBar5.scale.set(maxWidth5, 1, 1);
+        line5.scale.set(maxWidth5, 1, 1);
 
         enemyCube3.scale.set(1, 1, 1);  
 
@@ -1920,7 +1919,7 @@ function collision() {
 
             // Move enemyCannon to enemy2Cannon position
             enemyCannon.visible = false;
-            enemy2Cannon.position.copy(enemyCube2.position);
+            enemy2Cannon.position.copy(enemy2CannonPosition);
             enemy2Cannon.visible = true;
         }
 
@@ -1974,8 +1973,8 @@ function enemyCollision() {
     // Check collision between enemy projectile and player
     if (enemyProjectile_bb.intersectsBox(cube_bb)) {
         playerVelocity.set(
-            enemyProjectileVelocity.x * 0.2,
-            KNOCKBACK_FORCE,
+            enemyProjectileVelocity.x * 0.1,
+            KNOCKBACK_FORCE_BEAR,
             0
         );
         line1.position.x -= 1;
@@ -1997,9 +1996,9 @@ function enemyCollision() {
             line1.visible = false;
 
             // Move enemyCannon to enemy2Cannon position
-            enemyCannon.visible = false;
-            enemy2Cannon.position.copy(enemyCube2.position);
-            enemy2Cannon.visible = true;
+            cannon.visible = false;
+            lilBroCannon.position.copy(lilBroCannonPosition);
+            lilBroCannon.visible = true;
         }
 
         isPlayerFlying = true;
@@ -2162,33 +2161,51 @@ function updatePhysics(deltaTime) {
             line5.visible = false;
         }
     }
+
     if (isPlayerFlying) {
         playerVelocity.y += ENEMY4_GRAVITY * deltaTime;
+        
+        if (cube.position.y <= -0.6 && cube.position.x >= -15) {
+            const friction = 0.65;
+            playerVelocity.x *= friction;
+        }
+        
         cube.position.x += playerVelocity.x * deltaTime;
         cube.position.y += playerVelocity.y * deltaTime;
         
         healthBar1.position.x = cube.position.x;
         healthBar1.position.y = cube.position.y + 1.8;
         line1.position.copy(healthBar1.position);
-        cannon.position.x = cube.position.x;
-        cannon.position.y = cube.position.y;
-
-        if (cube.position.y <= -.25) {
+    
+        if (cube.position.y <= -0.6 && cube.position.x >= -16) {
+            playerVelocity.y = Math.abs(playerVelocity.y) * 0.5;
+            cube.position.y = -1;
+    
+            if (Math.abs(playerVelocity.x) < 0.1 && Math.abs(playerVelocity.y) < 0.1) {
+                isPlayerFlying = false;
+                playerVelocity.set(0, 0, 0);
+                isPlayerMovingBack = true;
+                
+                if (maxWidth1 <= 0.1) {
+                    cube.visible = false;
+                    healthBar1.visible = false;
+                    line1.visible = false;
+                }
+            }
+        }
+    
+        if (cube.position.y <= water.position.y) {
             isPlayerFlying = false;
-            cube.position.y = -0.5;
             createSplash(cube.position.clone());
             playSplashSound();
             playScreamSound();
-            
-            if (maxWidth1 <= 0.1) {
-                cube.visible = false;
-                healthBar1.visible = false;
-                line1.visible = false;
-            } else {
-                isPlayerMovingBack = true;
-            }
+            cube.visible = false;
+            healthBar1.visible = false;
+            line1.visible = false;
         }
+
     }
+
 
     if (isLilBroFlying) {
         lilBroVelocity.y += ENEMY4_GRAVITY * deltaTime;
