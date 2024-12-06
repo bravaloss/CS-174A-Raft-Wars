@@ -33,7 +33,7 @@ let bambooRaft;
 let isEnemy4Flying = false;
 let enemy4Velocity = new THREE.Vector3();
 const KNOCKBACK_FORCE = 2; 
-const KNOCKBACK_FORCE_BEAR = 0.01;
+const KNOCKBACK_FORCE_BEAR = .5;
 const ENEMY4_GRAVITY = -9.8;
 const GRAVITY = -9.8;
 let isEnemy1Flying = false;
@@ -258,7 +258,7 @@ loader.load('./assets/duck_floatie/scene.gltf',
         scene.add( gltf.scene );
         scene.remove(raft2);
         gltf.scene.position.set(-7.3, -0.5, 0);
-        gltf.scene.scale.set(0.5, 0.8, 0.5);
+        gltf.scene.scale.set(0.5, 0.5, 0.5);
         bambooRaft = gltf.scene; 
 
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -306,15 +306,15 @@ loader.load('./assets/pirate_ship/scene.gltf',
     }
 );
 
-// Modify the loader section for the log
+
 loader.load('./assets/log/scene.gltf',
     function ( gltf ) {
-        log = gltf.scene; // Store reference
+        log = gltf.scene; 
         log.position.set(15, -.8, -.5);
         log.scale.set(0.005, 0.01, 0.005);
         log.rotation.y = Math.PI / 2;
         log.position.z = .05;
-        log.visible = false; // Initially hidden
+        log.visible = false; 
         scene.add(gltf.scene);
 
         const originalAnimate = animate;
@@ -573,10 +573,22 @@ const waterShaderMaterial = new THREE.ShaderMaterial({
 
 
 // const scene = new THREE.Scene();
+const textureLoader = new THREE.TextureLoader();
+
+const bumpMap = textureLoader.load('TennisBallBump.jpg');
+const tennis_mat = new THREE.MeshStandardMaterial({
+    color: 0xccff00,  // Tennis ball yellow/green color
+    bumpMap: bumpMap,
+    bumpScale: 0.5,   // Adjust this value to control the bump effect strength
+    roughness: 0.8,   // Tennis balls are quite rough
+    metalness: 0.0    // Tennis balls are not metallic
+});
 scene.background = new THREE.Color(0x87CEEB); //light blue for sky
 const shootSound = new Audio('/boom.mp3');
 const splashSound = new Audio('/splash.mp3');
+const tennisSound = new Audio('/tennis.mp3');
 const scream = new Audio('/wilhelm.mp3');
+
 splashSound.volume = 0.1;
 shootSound.volume = 0.7;    
 
@@ -585,7 +597,7 @@ let projectile;
 let enemyProjectile = null;
 const projectileGeometry = new THREE.SphereGeometry(0.1, 8, 8);
 const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
+projectile = new THREE.Mesh(projectileGeometry, tennis_mat);
 enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
 let initialVelocity = new THREE.Vector3(); //store the initial velocity of the projectile
 let projectileVelocity = new THREE.Vector3();
@@ -673,6 +685,12 @@ function rotationMatrixZ(theta) {
 function playShootSound() {
     shootSound.currentTime = 0; 
     shootSound.play();          
+}
+
+
+function playTennisSound() {
+    tennisSound.currentTime = 0; 
+    tennisSound.play();          
 }
 
 function playSplashSound() {
@@ -1225,7 +1243,7 @@ function fireProjectile(cannonAngle) {
     //make projectile
     const projectileGeometry = new THREE.SphereGeometry(0.1, 8, 8);
     const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-    projectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
+    projectile = new THREE.Mesh(projectileGeometry, tennis_mat);
 
 
     const cannonLength = 0.75;
@@ -1341,7 +1359,7 @@ function handleKeyDown(event)
     //space bar to shoot
     else if (event.key === ' ') { 
         fireProjectile(cannonAngle);
-        playShootSound();
+        playTennisSound();
         cannonPosition.copy(cannon.position);
         cannonAttached = true;
     
@@ -1603,7 +1621,7 @@ function updateSplash() {
 
 
 // Function to create collision between cannon ball and enemy
-let health_val = 0.1; // health value for big bro
+let health_val = 0.3; // health value for big bro
 let maxWidth1 = 1.8; // Maximum width of the big bro health bar
 let maxWidth2 = 1.8;
 let maxWidth3 = 1.8;
@@ -1635,6 +1653,28 @@ function startLevel2() {
     currentLevel = 2;
     removeEnemies();
     
+    // Reset health bars for big bro and lil bro
+    maxWidth1 = 1.8; // Reset big bro health
+    maxWidth2 = 1.8; // Reset lil bro health
+    
+    // Reset health bar visuals
+    healthBar1.scale.set(1.8, 1, 1);
+    healthBar2.scale.set(1.8, 1, 1);
+    line1.scale.set(1.8, 1, 1);
+    line2.scale.set(1.8, 1, 1);
+    
+    // Reset health bar colors
+    healthBar1.material.color.set(0x228B22);
+    healthBar2.material.color.set(0x228B22);
+    
+    // Make sure characters and their health bars are visible
+    cube.visible = true;
+    lilbro.visible = true;
+    healthBar1.visible = true;
+    healthBar2.visible = true;
+    line1.visible = true;
+    line2.visible = true;
+    
     // Show level 2 assets
     if (pirateShip) pirateShip.visible = true;
     if (log) log.visible = true;
@@ -1665,10 +1705,8 @@ function startLevel2() {
     line6.visible = true;
     
     // Reset health bars
-    maxWidth3 = 5;
-    maxWidth5 = 20; //THIS LSOER KEEPS GETTING 1 SHOT HOW
+    maxWidth5 = 20;
     maxWidth6 = 100000;
-    maxWidth3 = 1.8;
     healthBar5.scale.set(1.8, 1, 1);
     healthBar6.scale.set(1.8, 1, 1);
     line5.scale.set(1.8, 1, 1);
@@ -1984,6 +2022,8 @@ function collision() {
             enemyCube1.visible = false;
             healthBar3.visible = false;
             line3.visible = false;
+            //move enemy1 to a random spot far away
+            enemyCube1.position.set(100, 100, 100);
 
             // Move enemyCannon to enemy2Cannon position
             enemyCannon.visible = false;
@@ -2013,7 +2053,7 @@ function enemyCollision() {
     // Check collision between enemy projectile and player
     if (enemyProjectile_bb.intersectsBox(cube_bb)) {
         playerVelocity.set(
-            enemyProjectileVelocity.x * 0.1,
+            enemyProjectileVelocity.x * 0.3,
             KNOCKBACK_FORCE_BEAR,
             0
         );
@@ -2044,8 +2084,6 @@ function enemyCollision() {
         isPlayerFlying = true;
         scene.remove(enemyProjectile);
         enemyProjectile = null;
-
-   
 
         // Check if the player also collides with lil bro
         if (cube_bb.intersectsBox(whiteCube_bb)) {
@@ -2106,45 +2144,76 @@ function enemyCollision() {
 
 function updatePhysics(deltaTime) {
     if (isEnemy1Flying) {
+        // Apply gravity
         enemy1Velocity.y += ENEMY4_GRAVITY * deltaTime;
         
-        if (enemyCube1.position.y <= -0.5 && enemyCube1.position.x <= 21.5) {
-            const friction = 0.23;
-            enemy1Velocity.x *= friction;
+        // Ground friction when touching the surface
+        if (enemyCube1.position.y <= -0.5 && enemyCube1.position.x <= 23.5) {
+            const frictionCoeff = 0.8;
+            const normalForce = Math.abs(ENEMY4_GRAVITY);
+            const frictionForce = frictionCoeff * normalForce * deltaTime;
+            
+            if (Math.abs(enemy1Velocity.x) > frictionForce) {
+                enemy1Velocity.x -= Math.sign(enemy1Velocity.x) * frictionForce;
+            } else {
+                enemy1Velocity.x = 0;
+            }
         }
         
+        // Update position
         enemyCube1.position.x += enemy1Velocity.x * deltaTime;
         enemyCube1.position.y += enemy1Velocity.y * deltaTime;
         
+        // Update health bar and outline positions
         healthBar3.position.x = enemyCube1.position.x;
         healthBar3.position.y = enemyCube1.position.y + 3;
         line3.position.copy(healthBar3.position);
         enemyCannon.position.x = enemyCube1.position.x;
         enemyCannon.position.y = enemyCube1.position.y;
-    
-        // Check for collision with enemy2 during bounce
+
+        // Check for collision with enemy2
         enemyCube1_bb.setFromObject(enemyCube1);
         enemyCube2_bb.setFromObject(enemyCube2);
         
         if (enemyCube1_bb.intersectsBox(enemyCube2_bb) && enemyCube2.visible) {
-            // Calculate collision direction from enemy1 to enemy2
-            const collisionDirection = new THREE.Vector3().subVectors(enemyCube2.position, enemyCube1.position).normalize();
+            // Calculate collision direction and speed
+            const collisionDirection = new THREE.Vector3()
+                .subVectors(enemyCube2.position, enemyCube1.position)
+                .normalize();
         
-            // Impart horizontal force in the direction of collision, plus some vertical lift
+            const impactSpeed = enemy1Velocity.length();
+            const horizontalBoost = 2.0; // Increase horizontal movement
+        
+            // Set enemy2's velocity based on the collision
             enemy2Velocity.set(
-                collisionDirection.x * 2.0 + 1,    // Adjust horizontal force as needed
-                KNOCKBACK_FORCE * 0.5,         // Keep vertical knockback
+                collisionDirection.x * impactSpeed * horizontalBoost, // Boosted horizontal velocity
+                KNOCKBACK_FORCE * 0.8, // Increased vertical component
                 0
             );
         
+            // Reduce enemy1's velocity after impact
+            enemy1Velocity.multiplyScalar(0.5);
+            enemy1Velocity.x *= 0.3; // Reduce horizontal movement more
+        
             isEnemy2Flying = true;
+        
+            // Optional: Add some randomness to make it more dynamic
+            enemy2Velocity.x += (Math.random() - 0.5) * 0.5;
+            enemy2Velocity.y += Math.random() * 0.5;
+        
+            // Stop Enemy 1 movement after collision
+            isEnemy1Flying = false;
+            enemy1Velocity.set(0, 0, 0); // Reset velocity
+            isEnemy1MovingBack = true;  // Begin moving back
         }
-    
-        if (enemyCube1.position.y <= -0.3 && enemyCube1.position.x <= 21.5) {
-            enemy1Velocity.y = Math.abs(enemy1Velocity.y) * 0.5;
+        
+        // Ground collision and bounce handling
+        if (enemyCube1.position.y <= -0.3 && enemyCube1.position.x <= 23.5) {
+            const bounceRestitution = 0.3;
+            enemy1Velocity.y = Math.abs(enemy1Velocity.y) * bounceRestitution;
             enemyCube1.position.y = -0.3;
-    
-            if (Math.abs(enemy1Velocity.x) < 0.1 && Math.abs(enemy1Velocity.y) < 0.1) {
+
+            if (Math.abs(enemy1Velocity.x) < 0.05 && Math.abs(enemy1Velocity.y) < 0.05) {
                 isEnemy1Flying = false;
                 enemy1Velocity.set(0, 0, 0);
                 isEnemy1MovingBack = true;
@@ -2156,7 +2225,8 @@ function updatePhysics(deltaTime) {
                 }
             }
         }
-    
+
+        // Water collision
         if (enemyCube1.position.y <= water.position.y) {
             isEnemy1Flying = false;
             createSplash(enemyCube1.position.clone());
@@ -2166,7 +2236,6 @@ function updatePhysics(deltaTime) {
             healthBar3.visible = false;
             line3.visible = false;
             maxWidth3 = 0;
-            //mve enemy1 far away
             enemyCube1.position.set(100, 100, 100);
         }
     }
@@ -2174,34 +2243,35 @@ function updatePhysics(deltaTime) {
     if (isEnemy2Flying) {
         enemy2Velocity.y += ENEMY4_GRAVITY * deltaTime;
         
-        if (enemyCube2.position.y <= -0.5 && enemyCube2.position.x <= 25) {
+        if (enemyCube2.position.y <= -0.5 && enemyCube2.position.x <= 23.5) {
             const friction = 0.65;
             enemy2Velocity.x *= friction;
         }
         
+        // Update enemy2 position
         enemyCube2.position.x += enemy2Velocity.x * deltaTime;
         enemyCube2.position.y += enemy2Velocity.y * deltaTime;
         
+        // Update health bar and outline positions
         healthBar4.position.x = enemyCube2.position.x;
         healthBar4.position.y = enemyCube2.position.y + 3;
         line4.position.copy(healthBar4.position);
 
-        // Check if enemy2 crosses boundary (x >= 19.5) and y <= -0.5
+        // Check boundary conditions
         if (enemyCube2.position.x >= 21.5 && enemyCube2.position.y <= -0.5) {
             isEnemy2Flying = false;
             createSplash(enemyCube2.position.clone());
             playSplashSound();
             playScreamSound();
             enemyCube2.visible = false;
-            //enemy2 health to 0
             maxWidth4 = 0;
             healthBar4.visible = false;
             line4.visible = false;
-            //move enemy2 far away
             enemyCube2.position.set(100, 100, 100);
         }
 
-        if (enemyCube2.position.y <= -0.5 && enemyCube2.position.x <= 21.5) {
+        // Ground collision handling
+        if (enemyCube2.position.y <= -0.5 && enemyCube2.position.x <= 23.5) {
             enemy2Velocity.y = Math.abs(enemy2Velocity.y) * 0.5;
             enemyCube2.position.y = -0.5;
 
@@ -2218,6 +2288,7 @@ function updatePhysics(deltaTime) {
             }
         }
 
+        // Water collision
         if (enemyCube2.position.y <= water.position.y) {
             isEnemy2Flying = false;
             createSplash(enemyCube2.position.clone());
@@ -2227,8 +2298,6 @@ function updatePhysics(deltaTime) {
             healthBar4.visible = false;
             line4.visible = false;
         }
-
-        enemy2Helper.update();
     }
 
     if (isEnemy3Flying) {
@@ -2587,12 +2656,13 @@ function animate() {
         enemyCube1.position.lerp(originalPositions.enemy1, movementSpeed);
         healthBar3.position.lerp(originalPositions.healthBar3, movementSpeed);
         line3.position.lerp(originalPositions.line3, movementSpeed);
-        enemy1Helper.update();
     
         if (enemyCube1.position.distanceTo(originalPositions.enemy1) < 0.01) {
             isEnemy1MovingBack = false;
+            enemy1Velocity.set(0, 0, 0); // Ensure velocity is zero
         }
     }
+    
     
     if (isEnemy2MovingBack) {
         enemy2Helper.update();
@@ -2737,8 +2807,11 @@ if (currentGameState === 'playing' && enemiesReadyToFire) {
         projectile.position.add(projectileVelocity.clone().multiplyScalar(deltaTime));
 
         if (projectile.position.y <= water.position.y) {
-            createSplash(projectile.position.clone());
-            playSplashSound();
+            
+            if (projectile.position.x < 15 || projectile.position.x > 23.5) {
+                playSplashSound();
+                createSplash(projectile.position.clone());
+            }
             isFiring = false;
             scene.remove(projectile);
             projectileRemovedTime = clock.getElapsedTime();

@@ -36,11 +36,34 @@
             font-family: 'Arial', sans-serif;
             box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
         }
+        #viewEnemyBtn {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            padding: 12px 24px;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: 2px solid rgb(0, 0, 0);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Arial', sans-serif;
+            transition: all 0.3s ease;
+            z-index: 10;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        #viewEnemyBtn:hover {
+            background-color: rgba(240, 240, 240, 0.9);
+            transform: scale(1.05);
+        }
+        #viewEnemyBtn:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
     <div id="powerDisplay">Power: 15</div>
     <div id="windDisplay">Wind: N 5</div>
+    <!-- <button id="viewEnemyBtn">View Enemy</button> -->
     <script type="module" src="/main.js"></script>
 </body>
 </html>
