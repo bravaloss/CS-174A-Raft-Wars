@@ -362,6 +362,28 @@ loader.load('./assets/raft/scene.gltf',
     }
 );
 
+// enemy1 character
+loader.load('./assets/full_moon_fears_torch_villager/scene.gltf',
+    function ( gltf ) {
+        scene.add( gltf.scene );
+        scene.remove(enemyCube1);
+        gltf.scene.position.set(17, -0.5, 0)
+        gltf.scene.scale.set(1.5, 1.5, 1.5);
+
+        gltf.scene.rotation.y = 3 * Math.PI / 2; 
+
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
+
 
 let rocketLauncher; // Variable for the rocket launcher
 const rocketLauncherPosition = new THREE.Vector3(-4, -0.8, 2); // Adjust position as needed
@@ -602,8 +624,8 @@ const cannonBasePosition = {
 }
 
 const enemyCannonPosition = {
-    x: 16.44,
-    y: -0.32,
+    x: 16.24,
+    y: 0.5,
     z: 0.64
 }
 
@@ -752,7 +774,7 @@ healthBar2.position.y = 1;
 const healthBar3 = new THREE.Mesh(healthBar3Geometry, healthBar3Material); 
 scene.add(healthBar3);
 healthBar3.position.x = 17;
-healthBar3.position.y = 1.8;
+healthBar3.position.y = 2.2;
 
 // enemy 2 health bar
 const healthBar4 = new THREE.Mesh(healthBar4Geometry, healthBar4Material); 
