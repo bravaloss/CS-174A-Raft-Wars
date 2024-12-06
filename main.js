@@ -1030,9 +1030,11 @@ loader.load('/assets/duck.gltf',
         let duck = gltf.scene;
         scene.remove(whiteCubeGeometry);
         scene.add( duck );
-        duck.position.set(-7.3, -0.8, 0);
+        duck.position.set(-0.5, -0.3, 0);
         duck.scale.set(0.65, 0.65, 0.65);
         duck.rotation.y = Math.PI / 2.5;
+        
+        lilbro.add(duck);
         
     },
     function ( xhr ) {
@@ -2849,6 +2851,11 @@ if (currentGameState === 'playing' && enemiesReadyToFire) {
     time = clock.getElapsedTime();
     raft.position.y = -0.9 + Math.sin(time * 2) * 0.1;
     raft2.position.y = -0.9 + Math.sin(time * 6) * 0.1;
+    cube.position.y = Math.sin(time * 2) * 0.1;
+    lilbro.position.y = (-0.6) + Math.sin(time * 2) * 0.1;
+    enemyCube1.position.y = (-0.25) + Math.sin(time * 2) * 0.1;
+    enemyCube2.position.y = (-0.25) +  Math.sin(time * 2) * 0.1;
+
     updateCameraPosition(deltaTime);
     waterShaderMaterial.uniforms.uTime.value = currentTime;
 
