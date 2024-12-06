@@ -193,7 +193,7 @@ const font = fontLoader.load(
 );
 
 // parrot for into scene
-loader.load('/assets/parrot.glb',
+loader.load('/assets/Parrot.glb',
     function ( gltf ) {
         let parrot = gltf.scene;
         scene.add( parrot );
