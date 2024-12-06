@@ -409,7 +409,7 @@ loader.load('./assets/viking_warriors/scene.gltf',
         gltf.scene.position.set(0, -0.1, 0);
         gltf.scene.scale.set(0.015, 0.015, 0.015);
         gltf.scene.rotation.y = 3 * Math.PI / 2;
-	gltf.scene.position.set(0.5, -0.25, 0);
+	gltf.scene.position.set(0.5, -0.25, 0.2);
 
         enemyCube2.add(viking);
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -871,7 +871,7 @@ healthBar3.position.y = 2.8;
 // enemy 2 health bar
 const healthBar4 = new THREE.Mesh(healthBar4Geometry, healthBar4Material); 
 scene.add(healthBar4);
-healthBar4.position.x = 21;
+healthBar4.position.x = 21.5;
 healthBar4.position.y = 3;
 
 function removeAllTextObjects() {
