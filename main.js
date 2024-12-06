@@ -320,6 +320,7 @@ loader.load('./assets/pirate_ship/scene.gltf',
         const originalAnimate = animate;
         animate = function() {
             let time = clock.getElapsedTime();
+            pirateShip.position.y = (0.3) + Math.sin(time * 2) * 0.1; 
             originalAnimate();
         }
     },
@@ -345,6 +346,7 @@ loader.load('./assets/log/scene.gltf',
         const originalAnimate = animate;
         animate = function() {
             let time = clock.getElapsedTime();
+            log.position.y = (-0.8) + Math.sin(time * 2) * 0.1; 
             originalAnimate();
         }
     },
@@ -469,6 +471,14 @@ loader.load('./assets/lord_pirate__maplestory/scene.gltf',
         enemyCube4.add(heimer);
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
         scene.add(ambientLight);
+
+	const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            heimer.position.y = Math.sin(time * 2) * 0.1; 
+            //maintainPirateScale();
+            originalAnimate();
+        }
 
     },
     function ( xhr ) {
@@ -966,6 +976,8 @@ loader.load('/assets/pirate/scene.gltf',
         // Add this to the animation loop
         const originalAnimate = animate;
         animate = function() {
+            let time = clock.getElapsedTime();
+            pirateModel.position.y = Math.sin(time * 2) * 0.1; 
             maintainPirateScale();
             originalAnimate();
         }
