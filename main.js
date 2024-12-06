@@ -379,6 +379,7 @@ loader.load('./assets/full_moon_fears_torch_villager/scene.gltf',
         scene.add( villager );
         gltf.scene.scale.set(1.5, 1.5, 1.5);
         gltf.scene.rotation.y = 3 * Math.PI / 2; 
+	gltf.scene.position.set(0, -0.25, 0);
 
         enemyCube1.add(villager);
 
@@ -407,7 +408,8 @@ loader.load('./assets/viking_warriors/scene.gltf',
         scene.add( viking );
         gltf.scene.position.set(0, -0.1, 0);
         gltf.scene.scale.set(0.015, 0.015, 0.015);
-        gltf.scene.rotation.y = 3 * Math.PI / 2; 
+        gltf.scene.rotation.y = 3 * Math.PI / 2;
+	gltf.scene.position.set(0.5, -0.25, 0);
 
         enemyCube2.add(viking);
         const ambientLight = new THREE.AmbientLight(0xffffff, 1);
@@ -2465,6 +2467,10 @@ const enemy1Helper = new THREE.BoxHelper(enemyCube1, 0x0000ff); // Blue for enem
 const enemy2Helper = new THREE.BoxHelper(enemyCube2, 0xff00ff); // Magenta for enemy2
 const enemy3Helper = new THREE.BoxHelper(enemyCube3, 0xffff00); // Yellow for enemy3
 const enemy4Helper = new THREE.BoxHelper(enemyCube4, 0x00ffff); // Cyan for enemy4
+enemy1Helper.visible = false;
+enemy2Helper.visible = false;
+enemy3Helper.visible = false;
+enemy4Helper.visible = false;
 
 scene.add(cubeHelper);
 // scene.add(whiteCubeHelper);
