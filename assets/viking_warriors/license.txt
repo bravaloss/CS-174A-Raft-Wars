@@ -1,0 +1,11 @@
+Model Information:
+* title:	Viking warriors
+* source:	https://sketchfab.com/3d-models/viking-warriors-08a9cf0018c446a5aa00da072a855cf3
+* author:	cathole233 (https://sketchfab.com/cathole_1)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Viking warriors" (https://sketchfab.com/3d-models/viking-warriors-08a9cf0018c446a5aa00da072a855cf3) by cathole233 (https://sketchfab.com/cathole_1) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

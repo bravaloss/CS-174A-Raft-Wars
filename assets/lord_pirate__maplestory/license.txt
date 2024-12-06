@@ -1,0 +1,11 @@
+Model Information:
+* title:	Lord Pirate | MapleStory
+* source:	https://sketchfab.com/3d-models/lord-pirate-maplestory-5a6fbb9b3ccf48e0b76850c1c837c823
+* author:	MooKorea (https://sketchfab.com/MooKorea)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Lord Pirate | MapleStory" (https://sketchfab.com/3d-models/lord-pirate-maplestory-5a6fbb9b3ccf48e0b76850c1c837c823) by MooKorea (https://sketchfab.com/MooKorea) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
