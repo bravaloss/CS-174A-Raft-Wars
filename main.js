@@ -4,7 +4,6 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { normalize } from 'three/src/math/MathUtils.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FontLoader } from 'three/addons/loaders/FontLoader.js';
-import { flattenJSON } from 'three/src/animation/AnimationUtils.js';
 // import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 
 const scene = new THREE.Scene();
@@ -14,9 +13,11 @@ const loader = new GLTFLoader();
 const fontLoader = new FontLoader();
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
+let selectedLevel = 1;
+let isLevelSelectVisible = false;
 let textMesh;
 let gameStarted = false; 
-let inMenu = true; // Start in the menu
+let inMenu = true; //game starts in menu
 const powerDisplay = document.getElementById('powerDisplay');
 const windDisplay = document.getElementById('windDisplay');
 const windDirections = ['W', 'E']; 
@@ -50,7 +51,7 @@ let enemy3Velocity = new THREE.Vector3();
 
 
 let currentLevel = 1;
-let pirateShip, log; // Store references to level 2 assets
+let pirateShip, log; //level 2 assets
 let hasCreatedNextLevelText = false;
 
 
@@ -66,15 +67,15 @@ const name_font = fontLoader.load(
         // Create text geometry and mesh
         const textGeometry = new TextGeometry('Raft Wars', {
             font: font,
-            size: 5, // Adjust size for better visibility in the sky
+            size: 5, 
             depth: 1,
         });
 
         const textMaterial = new THREE.MeshPhongMaterial({ color: 0xad4000 });
         textMesh = new THREE.Mesh(textGeometry, textMaterial);
 
-        // Position text in the sky
-        textMesh.position.set(-1, 31.3, 0); // Sky position
+
+        textMesh.position.set(-1, 31.3, 0); 
         textMesh.castShadow = true;
 
         scene.add(textMesh);
@@ -82,12 +83,12 @@ const name_font = fontLoader.load(
         
     },
 
-	// onProgress callback
+	
 	function ( xhr ) {
 		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
 	},
 
-	// onError callback
+
 	function ( err ) {
 		console.log( 'An error happened' );
 	}
@@ -95,109 +96,112 @@ const name_font = fontLoader.load(
 );
 
 const font = fontLoader.load(
-	// resource URL
-	'./fonts/Luckiest Guy_Regular.json',
-
-	// onLoad callback
-    
+    './fonts/Luckiest Guy_Regular.json',
     function (font) {
-        // Create text geometry and mesh
-        const textGeometry = new TextGeometry('Play', {
+        //play text
+        const playGeometry = new TextGeometry('Play', {
             font: font,
-            size: 5, // Adjust size for better visibility in the sky
+            size: 5,
+            depth: 1,
+        });
+
+        //level 1 text
+        const level1Geometry = new TextGeometry('Level 1', {
+            font: font,
+            size: 4,
+            depth: 1,
+        });
+
+        //level 2 text
+        const level2Geometry = new TextGeometry('Level 2', {
+            font: font,
+            size: 4,
             depth: 1,
         });
 
         const textMaterial = new THREE.MeshPhongMaterial({ color: 0xad4000 });
-        textMesh = new THREE.Mesh(textGeometry, textMaterial);
+        const playMesh = new THREE.Mesh(playGeometry, textMaterial);
+        const level1Mesh = new THREE.Mesh(level1Geometry, textMaterial.clone());
+        const level2Mesh = new THREE.Mesh(level2Geometry, textMaterial.clone());
 
-        // Position text in the sky
-        textMesh.position.set(8, 25, 0); // Sky position
-        textMesh.castShadow = true;
+        
+        playMesh.position.set(8, 25, 0);
+        level1Mesh.position.set(7, 25, 0); 
+        level2Mesh.position.set(7, 18, 0); 
+        
+        //initially hide level selection
+        level1Mesh.visible = false;
+        level2Mesh.visible = false;
 
-        scene.add(textMesh);
+        scene.add(playMesh);
+        scene.add(level1Mesh);
+        scene.add(level2Mesh);
 
-        // Add click event for raycasting
-        window.addEventListener('mousemove', (event) => {
-            // Ensure textMesh exists before raycasting
-            if (!textMesh) return;
 
-            // Convert mouse position to normalized device coordinates (-1 to +1)
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            
-            // Perform raycasting
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObject(textMesh);
-            
-            if (intersects.length > 0) {
-                textMesh.material.color.set(0xFFD700); // Change to yellow on hover
-            } else {
-                textMesh.material.color.set(0xFFFF00); // Reset to original yellow color
-            }
-        });
         window.addEventListener('mousedown', (event) => {
             if (inMenu) {
-                // Convert mouse position to normalized device coordinates (-1 to +1)
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        
-                // Update raycaster with camera and mouse position
                 raycaster.setFromCamera(mouse, camera);
-        
-                const intersects = raycaster.intersectObject(textMesh);
-                if (intersects.length > 0) {
-                    // Lerp camera to the game position
-                    const targetPosition = defaultCameraPosition.clone();
-                    const targetRotation = defaultCameraRotation.clone();
-                    const animationDuration = 2; // Duration in seconds
-                    const startTime = clock.getElapsedTime();
-        
-                    function animateCameraLerp() {
-                        const elapsedTime = clock.getElapsedTime() - startTime;
-                        const t = Math.min(elapsedTime / animationDuration, 1);
-        
-                        camera.position.lerp(targetPosition, t);
-                        camera.rotation.x += (targetRotation.x - camera.rotation.x) * t;
-                        camera.rotation.y += (targetRotation.y - camera.rotation.y) * t;
-                        camera.rotation.z += (targetRotation.z - camera.rotation.z) * t;
-        
-                        if (t < 1) {
-                            requestAnimationFrame(animateCameraLerp);
-                        } else {
-                            inMenu = false; // Switch to game state
-                            gameStarted = true; // Start the game logic
-                            controls.enabled = true; // Re-enable OrbitControls
-                            updatePowerDisplayVisibility();
-                        }
+
+                if (!isLevelSelectVisible) {
+                    const intersects = raycaster.intersectObject(playMesh);
+                    if (intersects.length > 0) {
+                        //shows level selection
+                        playMesh.visible = false;
+                        level1Mesh.visible = true;
+                        level2Mesh.visible = true;
+                        isLevelSelectVisible = true;
                     }
-        
-                    controls.enabled = false; // Disable OrbitControls during animation
-                    animateCameraLerp();
+                } else {
+                    //check for level selection clicks
+                    const level1Intersects = raycaster.intersectObject(level1Mesh);
+                    const level2Intersects = raycaster.intersectObject(level2Mesh);
+                    
+                    if (level1Intersects.length > 0) {
+                        selectedLevel = 1;
+                        startLevel1();
+                        inMenu = false;
+                        gameStarted = true;
+                        controls.enabled = true;
+                        updatePowerDisplayVisibility();
+                    } else if (level2Intersects.length > 0) {
+                        selectedLevel = 2;
+                        startLevel2();
+                        inMenu = false;
+                        gameStarted = true;
+                        controls.enabled = true;
+                        updatePowerDisplayVisibility();
+                    }
                 }
             }
         });
-        
-    },
 
-	// onProgress callback
-	function ( xhr ) {
-		console.log( (xhr.loaded / xhr.total * 100) + '% loaded' );
-	},
-
-	// onError callback
-	function ( err ) {
-		console.log( 'An error happened' );
-	}
-    
+        //hover effects
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            
+            [playMesh, level1Mesh, level2Mesh].forEach(mesh => {
+                if (mesh.visible) {
+                    const intersects = raycaster.intersectObject(mesh);
+                    if (intersects.length > 0) {
+                        mesh.material.color.set(0xFFD700);
+                    } else {
+                        mesh.material.color.set(0xad4000);
+                    }
+                }
+            });
+        });
+    }
 );
 
-// parrot for into scene
 loader.load('/assets/Parrot.glb',
     function ( gltf ) {
         let parrot = gltf.scene;
         scene.add( parrot );
-        parrot.position.set(0, 20, 0);
+        parrot.position.set(0, 20, 3);
         parrot.scale.set(0.1, 0.1, 0.1);
         parrot.rotation.y = Math.PI / 2; 
 
@@ -308,7 +312,7 @@ loader.load('./assets/duck_floatie/scene.gltf',
 //LEVEL 2: Pirate Ship / Log Creation
 loader.load('./assets/pirate_ship/scene.gltf',
     function ( gltf ) {
-        pirateShip = gltf.scene; // Store reference
+        pirateShip = gltf.scene; 
         pirateShip.position.set(20, .3, -.5);
         pirateShip.rotation.y = Math.PI / 3;
         pirateShip.visible = false; // Initially hidden
@@ -320,7 +324,6 @@ loader.load('./assets/pirate_ship/scene.gltf',
         const originalAnimate = animate;
         animate = function() {
             let time = clock.getElapsedTime();
-            pirateShip.position.y = (0.3) + Math.sin(time * 2) * 0.1; 
             originalAnimate();
         }
     },
@@ -346,7 +349,6 @@ loader.load('./assets/log/scene.gltf',
         const originalAnimate = animate;
         animate = function() {
             let time = clock.getElapsedTime();
-            log.position.y = (-0.8) + Math.sin(time * 2) * 0.1; 
             originalAnimate();
         }
     },
@@ -393,113 +395,17 @@ loader.load('./assets/raft/scene.gltf',
     }
 );
 
-const enemyCubeGeometry1 = new THREE.BoxGeometry(0.8, 4, 0.8);
-const enemyCubeMaterial1 = new THREE.MeshBasicMaterial({ color: 0x2F4F4F, visible: false }); // Dark slate gray color
-const enemyCube1 = new THREE.Mesh(enemyCubeGeometry1, enemyCubeMaterial1);
-enemyCube1.position.set(17, -0.3, 0);
-scene.add(enemyCube1);
-// enemy1 character
-let villager;
-loader.load('./assets/full_moon_fears_torch_villager/scene.gltf',
-    function ( gltf ) {
-        villager = gltf.scene;
-        scene.add( villager );
-        gltf.scene.scale.set(1.5, 1.5, 1.5);
-        gltf.scene.rotation.y = 3 * Math.PI / 2; 
-	gltf.scene.position.set(0, -0.25, 0);
 
-        enemyCube1.add(villager);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-        scene.add(ambientLight);
-
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
-
-const enemyCubeGeometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-const enemyCubeMaterial2 = new THREE.MeshBasicMaterial({ color: 0x4B0082, visible: false }); // Indigo color
-const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
-enemyCube2.position.set(21, -0.3, 0);
-scene.add(enemyCube2);
-// enemy2 character
-let viking;
-loader.load('./assets/viking_warriors/scene.gltf',
-    function ( gltf ) {
-        viking = gltf.scene;
-        scene.add( viking );
-        gltf.scene.position.set(0, -0.1, 0);
-        gltf.scene.scale.set(0.015, 0.015, 0.015);
-        gltf.scene.rotation.y = 3 * Math.PI / 2;
-	gltf.scene.position.set(0.5, -0.25, 0.2);
-
-        enemyCube2.add(viking);
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-        scene.add(ambientLight);
-
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
-
-// enemy4 geometry
-const enemyCubeGeometry4 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-const enemyCubeMaterial4 = new THREE.MeshBasicMaterial({ color: 0x008000, visible: false }); // Green color
-const enemyCube4 = new THREE.Mesh(enemyCubeGeometry4, enemyCubeMaterial4);
-enemyCube4.position.set(19.45, 4.67, 0);
-scene.add(enemyCube4);
-// enemy4 character
-let heimer;
-loader.load('./assets/lord_pirate__maplestory/scene.gltf',
-    function ( gltf ) {
-        heimer = gltf.scene;
-        scene.add( heimer );
-        gltf.scene.position.set(0, 0, 0)
-        gltf.scene.scale.set(0.2, 0.3, 0.5);
-        gltf.scene.rotation.y = 3 * Math.PI / 2; 
-
-
-        enemyCube4.add(heimer);
-        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
-        scene.add(ambientLight);
-
-	const originalAnimate = animate;
-        animate = function() {
-            let time = clock.getElapsedTime();
-            heimer.position.y = Math.sin(time * 2) * 0.1; 
-            //maintainPirateScale();
-            originalAnimate();
-        }
-
-    },
-    function ( xhr ) {
-        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
-    },
-    function ( error ) {
-        console.log( 'An error happened', error );
-    }
-);
-
-
-let rocketLauncher; // Variable for the rocket launcher
-const rocketLauncherPosition = new THREE.Vector3(-4, -0.8, 2); // Adjust position as needed
+let rocketLauncher; 
+const rocketLauncherPosition = new THREE.Vector3(-4, -0.8, 2); 
 loader.load('./assets/pixel_rocket_launcher/scene.gltf',
     function ( gltf ) {
 
         rocketLauncher = gltf.scene;
-        rocketLauncher.scale.set(0.1, 0.1, 0.1); // Adjust size
+        rocketLauncher.scale.set(0.1, 0.1, 0.1); 
         rocketLauncher.rotation.y = Math.PI / 2;
         rocketLauncher.position.set(-4, -0.8, 1);
-        rocketLauncher.visible = false; // Initially hidden
+        rocketLauncher.visible = false; 
         scene.add(rocketLauncher);
 
         const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
@@ -536,12 +442,12 @@ const zAxis = createAxisLine(0x0000ff, new THREE.Vector3(0, 0, 0), new THREE.Vec
 const waterShaderMaterial = new THREE.ShaderMaterial({
     uniforms: {
         uTime: { value: 0 },
-        uColor: { value: new THREE.Color(0x1ca3ec) }, // Base water color
-        uWaveSpeed: { value: 1.0 }, // Speed of the wave
-        uWaveHeight: { value: 0.25 }, // Height of the wave
-        uWaveFrequency: { value: 0.7 }, // Frequency of the wave
-        uReflectivity: { value: 0.1 }, // Reflectivity intensity
-        uSkyColor: { value: new THREE.Color(0x87CEEB) } // Sky color for reflection
+        uColor: { value: new THREE.Color(0x1ca3ec) }, 
+        uWaveSpeed: { value: 1.0 }, //speed of wave
+        uWaveHeight: { value: 0.25 }, //height of wave
+        uWaveFrequency: { value: 0.7 }, //frequency of the wave
+        uReflectivity: { value: 0.1 }, //reflectivity
+        uSkyColor: { value: new THREE.Color(0x87CEEB) } //sky color for reflection
     },
     vertexShader: `
         uniform float uTime;
@@ -556,7 +462,7 @@ const waterShaderMaterial = new THREE.ShaderMaterial({
             vUv = uv;
             vWorldPosition = (modelMatrix * vec4(position, 1.0)).xyz;
 
-            // Get the vertex position in world space
+            //vertex position in world space
             vec3 pos = position;
             
             //first wave layer
@@ -614,17 +520,19 @@ const textureLoader = new THREE.TextureLoader();
 
 const bumpMap = textureLoader.load('TennisBallBump.jpg');
 const tennis_mat = new THREE.MeshStandardMaterial({
-    color: 0xccff00,  // Tennis ball yellow/green color
+    color: 0xccff00, 
     bumpMap: bumpMap,
-    bumpScale: 0.5,   // Adjust this value to control the bump effect strength
-    roughness: 0.8,   // Tennis balls are quite rough
-    metalness: 0.0    // Tennis balls are not metallic
+    bumpScale: 0.5,  
+    roughness: 0.8,  
+    metalness: 0.0 
 });
+
 scene.background = new THREE.Color(0x87CEEB); //light blue for sky
 const shootSound = new Audio('/boom.mp3');
 const splashSound = new Audio('/splash.mp3');
 const tennisSound = new Audio('/tennis.mp3');
 const scream = new Audio('/wilhelm.mp3');
+const winSound = new Audio('/yay.mp3');
 
 splashSound.volume = 0.1;
 shootSound.volume = 0.7;    
@@ -639,11 +547,11 @@ enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
 let initialVelocity = new THREE.Vector3(); //store the initial velocity of the projectile
 let projectileVelocity = new THREE.Vector3();
 let enemyProjectileVelocity = new THREE.Vector3();
-let initialSpeed = 15; // Initial speed of the projectile
-const MIN_SPEED = 5;   // Minimum speed limit
-const MAX_SPEED = 25;  // Maximum speed limit
-const SPEED_INCREMENT = 1; // How much speed changes per key press
-const gravityVector = new THREE.Vector3(0, -9.8, 0); // Gravity as a vector
+let initialSpeed = 15; //initial speed 
+const MIN_SPEED = 5;   // min speed limit
+const MAX_SPEED = 25;  // max speed limit
+const SPEED_INCREMENT = 1; 
+const gravityVector = new THREE.Vector3(0, -9.8, 0); 
 let isEnemyProjectileActive = false;
 
 let lastTime = 0;
@@ -652,8 +560,8 @@ let cannonAttached = false;
 let cannonPosition = new THREE.Vector3();
 let defaultCameraPosition = new THREE.Vector3(-5, 0, 9);
 // let defaultCameraPosition = new THREE.Vector3(18.5, 0, 9);
-const enemyDefaultCameraPosition = new THREE.Vector3(18.5, 0, 9); // Enemy's default camera position
-const enemyDefaultCameraRotation = new THREE.Euler(); // Clone to store initial rotation for enemy
+const enemyDefaultCameraPosition = new THREE.Vector3(18.5, 0, 9); //enemy's default camera position
+const enemyDefaultCameraRotation = new THREE.Euler();
 
 let blendingFactor = 0.02;
 
@@ -663,7 +571,7 @@ let isInResetDelay = false; //check if we reset camera yet
 let enemyProjectileRemovedTime = null;
 
 
-const enemyFireDelay = 2.5; // 3 seconds delay
+const enemyFireDelay = 2.5; 
 const MIN_TIME_BETWEEN_SHOTS = 4.0;
 let lastEnemyFireTime = 0;
 
@@ -748,8 +656,8 @@ const cannonBasePosition = {
 }
 
 const enemyCannonPosition = {
-    x: 16.24,
-    y: 0.5,
+    x: 16.44,
+    y: -0.32,
     z: 0.64
 }
 
@@ -783,7 +691,7 @@ function showGameOverText(message, color) {
             gameOverText.position.set(-5 - textWidth/2, 5, -10);
             scene.add(gameOverText);
 
-            // Reset enemy states
+            //reset enemy states
             isEnemyPreparingToShoot = false;
             isEnemyRotating = false;
             
@@ -826,8 +734,8 @@ for (let i = 0; i < 15; i++) {
         -Math.random() * 50          
     );
 
-    cloud.userData.speed = Math.random() * 0.01 + 0.002; // Assign a random speed to the cloud
-    clouds.push(cloud); // Add to the array for tracking
+    cloud.userData.speed = Math.random() * 0.01 + 0.002; //each cloud random speed
+    clouds.push(cloud); 
     scene.add(cloud);
 }
 
@@ -859,6 +767,13 @@ loader.load('/assets/bear.gltf',
         gltf.scene.rotation.y = Math.PI / 2.5;
 
         cube.add(bear);
+
+        const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            gltf.scene.position.y = -.6 + Math.sin(time * 2) * 0.1;
+            originalAnimate();
+        }
     },
     function ( xhr ) {
         console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
@@ -868,7 +783,7 @@ loader.load('/assets/bear.gltf',
     }
 );
 //water
-const waterGeometry = new THREE.PlaneGeometry(2000, 2000, 400, 400);
+const waterGeometry = new THREE.PlaneGeometry(500, 500, 100, 100);
 const waterMaterial = new THREE.MeshBasicMaterial({ color: 0x1ca3ec, side: THREE.DoubleSide });
 const water = new THREE.Mesh(waterGeometry, waterShaderMaterial);
 water.rotation.x = -Math.PI / 2; //makes the water horizontal
@@ -901,13 +816,13 @@ healthBar2.position.y = 1;
 const healthBar3 = new THREE.Mesh(healthBar3Geometry, healthBar3Material); 
 scene.add(healthBar3);
 healthBar3.position.x = 17;
-healthBar3.position.y = 2.8;
+healthBar3.position.y = 1.8;
 
 // enemy 2 health bar
 const healthBar4 = new THREE.Mesh(healthBar4Geometry, healthBar4Material); 
 scene.add(healthBar4);
-healthBar4.position.x = 21.5;
-healthBar4.position.y = 3;
+healthBar4.position.x = 21;
+healthBar4.position.y = 1.8;
 
 function removeAllTextObjects() {
     const objectsToRemove = [];
@@ -941,7 +856,7 @@ scene.add(line4);
 
 // Enemy 3
 const enemyCubeGeometry3 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
-const enemyCubeMaterial3 = new THREE.MeshBasicMaterial({ color: 0x800080, visible: false}); // Purple color
+const enemyCubeMaterial3 = new THREE.MeshBasicMaterial({ color: 0x800080, visible: false}); 
 const enemyCube3 = new THREE.Mesh(enemyCubeGeometry3, enemyCubeMaterial3);
 // enemyCube3.position.set(14, -0.1, 0);
 scene.add(enemyCube3);
@@ -951,21 +866,19 @@ loader.load('/assets/pirate/scene.gltf',
         pirateModel = gltf.scene;
         scene.add(pirateModel);
         
-        // Set initial scale
+
         pirateModel.scale.set(1, 1, 1);
         pirateModel.position.set(14, -0.6, 0);
-        pirateModel.rotation.y = deg2rad(270); // Rotate 90 degrees
+        pirateModel.rotation.y = deg2rad(270); 
         
-        // Initially hide the model
         pirateModel.visible = false;
 
-        // Update the enemyCube3 reference to include the model
+ 
         enemyCube3.add(pirateModel);
         
-        // Make sure the model moves with enemyCube3
+
         pirateModel.position.set(0, 0, 0);
-        
-        // Add scale maintenance function
+
         function maintainPirateScale() {
             if (pirateModel && pirateModel.parent) {
                 pirateModel.scale.set(1, 1, 1);
@@ -973,11 +886,11 @@ loader.load('/assets/pirate/scene.gltf',
             }
         }
         
-        // Add this to the animation loop
+
         const originalAnimate = animate;
         animate = function() {
             let time = clock.getElapsedTime();
-            pirateModel.position.y = Math.sin(time * 2) * 0.1; 
+            pirateModel.position.y =  Math.sin(time * 2) * 0.1;
             maintainPirateScale();
             originalAnimate();
         }
@@ -994,17 +907,53 @@ const healthBar5Geometry = new THREE.BoxGeometry(1.8, 0.3, 0.3);
 const healthBar5Material = new THREE.MeshBasicMaterial({ color: 0x228B22 });
 const healthBar5 = new THREE.Mesh(healthBar5Geometry, healthBar5Material);
 scene.add(healthBar5);
-healthBar5.position.set(20, 1.2, 0);
+healthBar5.position.set(14, 1.2, 0);
 
 const edges5 = new THREE.EdgesGeometry(healthBar5Geometry);
 const line5 = new THREE.LineSegments(edges5, new THREE.LineBasicMaterial({ color: 0x000000 }));
 line5.position.copy(healthBar5.position);
 scene.add(line5);
 
+//move far away intiailly
+enemyCube3.position.set(1000, 1000, 0); 
+healthBar5.position.set(1000, 1002, 0); 
+line5.position.set(1000, 1002, 0); 
 
-enemyCube3.position.set(1000, 1000, 0); // Move it far away initially
-healthBar5.position.set(1000, 1002, 0); // Health bar follows
-line5.position.set(1000, 1002, 0); // Outline follows
+const enemyCubeGeometry4 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+const enemyCubeMaterial4 = new THREE.MeshBasicMaterial({ color: 0x008000, visible: false, }); 
+const enemyCube4 = new THREE.Mesh(enemyCubeGeometry4, enemyCubeMaterial4);
+enemyCube4.position.set(19.45, 4.67, 0);
+scene.add(enemyCube4);
+let heimer;
+
+loader.load('./assets/lord_pirate__maplestory/scene.gltf',
+    function ( gltf ) {
+        heimer = gltf.scene;
+        scene.add( heimer );
+        gltf.scene.position.set(0, 0, 0)
+        gltf.scene.scale.set(0.2, 0.3, 0.5);
+        gltf.scene.rotation.y = 3 * Math.PI / 2; 
+
+
+        enemyCube4.add(heimer);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+
+        const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            // gltf.scene.position.y = Math.sin(time * 1.3) * 0.1;
+            originalAnimate();
+        }
+
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened', error );
+    }
+);
 
 
 let enemyCube3_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
@@ -1018,7 +967,7 @@ const healthBar6Geometry = new THREE.BoxGeometry(1.8, 0.3, 0.3);
 const healthBar6Material = new THREE.MeshBasicMaterial({ color: 0x228B22 });
 const healthBar6 = new THREE.Mesh(healthBar6Geometry, healthBar6Material);
 scene.add(healthBar6);
-healthBar6.position.set(19.45, 7, 0);
+healthBar6.position.set(19.45, 6.47, 0);
 
 const edges6 = new THREE.EdgesGeometry(healthBar6Geometry);
 const line6 = new THREE.LineSegments(edges6, new THREE.LineBasicMaterial({ color: 0x000000 }));
@@ -1032,7 +981,7 @@ const raft = new THREE.Mesh(raftGeometry, raftMaterial);
 raft.position.y = -0.9; 
 scene.add(raft);
 
-// Lighting (optional)
+//lighting
 const light = new THREE.DirectionalLight(0xffffff, 0.8);
 light.position.set(0, 9, 0).normalize();
 scene.add(light);
@@ -1057,21 +1006,27 @@ raft2.position.set(3, -0.9, 0); //next to big bro
 scene.add(raft2);
 
 //second cube
-const whiteCubeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8); // Reduced size
+const whiteCubeGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.8); 
 const whiteCubeMaterial = new THREE.MeshBasicMaterial({ color: 0xefddbb, visible: false,});
 const lilbro = new THREE.Mesh(whiteCubeGeometry, whiteCubeMaterial);
 lilbro.position.set(3, -0.5, 0); //above smaller raft
 scene.add(lilbro);
+
 loader.load('/assets/duck.gltf',
     function ( gltf ) {
         let duck = gltf.scene;
         scene.remove(whiteCubeGeometry);
         scene.add( duck );
-        duck.position.set(-0.5, -0.3, 0);
+        duck.position.set(-7.3, -0.8, 0);
         duck.scale.set(0.65, 0.65, 0.65);
         duck.rotation.y = Math.PI / 2.5;
-        
-        lilbro.add(duck);
+
+        const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            gltf.scene.position.y = -.8 + Math.sin(time * 2) * 0.1;
+            originalAnimate();
+        }
         
     },
     function ( xhr ) {
@@ -1087,27 +1042,50 @@ raft2.position.x = -6.8
 lilbro.position.x = -6.8
 
 const islandGeometry = new THREE.CylinderGeometry(5, 7, 1, 32);
-const islandMaterial = new THREE.MeshBasicMaterial({ color: 0xC2B280 }); // Sandy color
+const islandMaterial = new THREE.MeshBasicMaterial({ color: 0xC2B280 }); //sand
 const island = new THREE.Mesh(islandGeometry, islandMaterial);
-island.position.set(0, -0.5, -40); // Position it in the background
+island.position.set(0, -0.5, -40); //in background
 scene.add(island);
 
 //ENEMIES!!!
+const slimeTexture = textureLoader.load('/slime.png');
+
+slimeTexture.wrapS = THREE.RepeatWrapping;
+slimeTexture.wrapT = THREE.RepeatWrapping;
+slimeTexture.repeat.set(1, 1);
+
 
 //enemy1 raft
 const enemyRaftGeometry1 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
-const enemyRaftMaterial1 = new THREE.MeshBasicMaterial({ color: 0x8B0000 }); // Dark red color
+const enemyRaftMaterial1 = new THREE.MeshBasicMaterial({ color: 0x8B0000 }); 
 const enemyRaft1 = new THREE.Mesh(enemyRaftGeometry1, enemyRaftMaterial1);
 enemyRaft1.position.set(17, -0.9, 0);
 scene.add(enemyRaft1);
 
+const enemyCubeGeometry1 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+// const enemyCubeMaterial1 = new THREE.MeshBasicMaterial({ color: 0x2F4F4F }); // Dark slate gray color
+const enemyCubeMaterial1 = new THREE.MeshPhongMaterial({ 
+    map: slimeTexture,
+
+    shininess: 30
+});
+
+const enemyCube1 = new THREE.Mesh(enemyCubeGeometry1, enemyCubeMaterial1);
+enemyCube1.position.set(17, -0.3, 0);
+scene.add(enemyCube1);
+
 //enemy2 raft
 const enemyRaftGeometry2 = new THREE.BoxGeometry(1.8, 0.18, 1.8);
-const enemyRaftMaterial2 = new THREE.MeshBasicMaterial({ color: 0xFF4500 }); // Orange-red color
+const enemyRaftMaterial2 = new THREE.MeshBasicMaterial({ color: 0xFF4500 }); 
 const enemyRaft2 = new THREE.Mesh(enemyRaftGeometry2, enemyRaftMaterial2);
 enemyRaft2.position.set(20, -0.9, 0);
 scene.add(enemyRaft2);
 
+const enemyCubeGeometry2 = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+const enemyCubeMaterial2 = new THREE.MeshBasicMaterial({ color: 0x4B0082 }); 
+const enemyCube2 = new THREE.Mesh(enemyCubeGeometry2, enemyCubeMaterial2);
+enemyCube2.position.set(21, -0.3, 0);
+scene.add(enemyCube2);
 
 // bounding boxes for collision
 
@@ -1125,7 +1103,7 @@ let cube_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 cube_bb.setFromObject(cube);
 
 let whiteCube_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
-whiteCube_bb.setFromObject(lilbro); // Initialize with whiteCube object
+whiteCube_bb.setFromObject(lilbro); 
 
 let enemyCannonball_bb = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3());
 enemyCannonball_bb.setFromObject(enemyProjectile);
@@ -1192,13 +1170,46 @@ function createPalmTree(trunkHeight = 10, frondsCount = 8) {
 }
 
 
-const palmTree = createPalmTree(8, 10);
-palmTree.position.set(0, 3.5, -40);
+// const palmTree = createPalmTree(8, 10);
+// palmTree.position.set(0, 3.5, -40);
 
-scene.add(palmTree);
+// scene.add(palmTree);
+
+loader.load('./assets/palm_tree/scene.gltf',
+    function ( gltf ) {
+        const palmTree = gltf.scene;
+        scene.add( palmTree );
+        
+        //on island
+        palmTree.position.set(0, -0.5, -40);
+        
+ 
+        palmTree.scale.set(0.05, 0.05, 0.05);
+        
+        //rotation each time its refreshed
+        palmTree.rotation.y = Math.PI * Math.random();
+        
+        const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+        scene.add(ambientLight);
+        
+        //sway
+        const originalAnimate = animate;
+        animate = function() {
+            let time = clock.getElapsedTime();
+            palmTree.position.x = Math.sin(time * 0.5) * 0.1;
+            originalAnimate();
+        }
+    },
+    function ( xhr ) {
+        console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+    },
+    function ( error ) {
+        console.log( 'An error happened loading palm tree:', error );
+    }
+);
 
 //create cannon ( to shoot )
-const cannonGeomtry = new THREE.BoxGeometry(1.5, 0.25, .25); // Reduced size
+const cannonGeomtry = new THREE.BoxGeometry(1.5, 0.25, .25);
 const cannonMaterial = new THREE.MeshBasicMaterial({ color: 0xe3300d});
 const cannon = new THREE.Mesh(cannonGeomtry, cannonMaterial);
 scene.add(cannon);
@@ -1216,7 +1227,7 @@ cannon.position.x -= 4.34;
 let cannonAngle = 0;
 let enemyCannonAngle = Math.PI; //pointing the opposite direction
 
-// create another cannon if the other dies
+//create another cannon if big bro dies
 const lilBroCannon = cannon.clone();
 lilBroCannon.position.x -= 6.34;
 lilBroCannon.position.z += .64;
@@ -1240,8 +1251,6 @@ const enemy2CannonPosition = {
 };
 
 //function which has the enemy shoot a projectile at a calculated angle based on the distance between the player and the enemy, with a randomized element
-
-
 function fireEnemyProjectile(cannonAngle) {
     if (enemyProjectile) {
         scene.remove(enemyProjectile);
@@ -1251,7 +1260,7 @@ function fireEnemyProjectile(cannonAngle) {
     const projectileMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
     enemyProjectile = new THREE.Mesh(projectileGeometry, projectileMaterial);
 
-    // Get the appropriate cannon position based on current level
+    //appropriate cannon position based on current level
     const currentCannonPosition = currentLevel === 2 ? enemy3CannonPosition : enemyCannonPosition;
 
     const cannonLength = 0.75;
@@ -1310,9 +1319,10 @@ function fireProjectile(cannonAngle) {
 }
 
 function updateWind() {
-    // Randomly set wind direction
+    //randomize wind direction
     windDirection = Math.random() < 0.5 ? -1 : 1;
     
+    //randomize wind strength
     windStrength = 0.8 + Math.random() * 1.2;
     
     const direction = windDirection === 1 ? 'E' : 'W';
@@ -1327,8 +1337,9 @@ function deg2rad(degrees) {
 
 //function that calculates the angle the enemy cannon should shoot at
 function calculateEnemyCannonAngle() {
-    //random value between 14 and 25
-    const enemyInitialSpeed = Math.random() * (25 - 14) + 14;
+
+    //random value between 14 and 21
+    const enemyInitialSpeed = Math.random() * (21 - 14) + 14;
     
     const deltaX = cannon.position.x - enemyCannon.position.x;
     const deltaY = cannon.position.y - enemyCannon.position.y;
@@ -1341,9 +1352,9 @@ function calculateEnemyCannonAngle() {
     const clampedSin2Theta = Math.max(-1, Math.min(1, sin2Theta));
     const baseAngle = Math.asin(clampedSin2Theta) / 2;
 
-    const randomOffset = (Math.random() - 0.5) * deg2rad(15); //random +- 15 degrees offset
+    const randomOffset = (Math.random() - 0.5) * deg2rad(15); //random +- 0 to 15 degrees offset
     
-    // Store the random speed to be used when firing
+    //store the random speed to be used when firing
     enemyProjectileInitialSpeed = enemyInitialSpeed;
     
     return Math.PI - Math.max(0, Math.min(Math.PI / 2, baseAngle + randomOffset));
@@ -1354,8 +1365,6 @@ let enemyShootStartTime = null;
 
 let isEnemyRotating = false; 
 let enemyTargetAngle = null; //target angle for rotation
-
-// Handle key down events
 
 
 function updatePowerDisplayVisibility() {
@@ -1374,7 +1383,7 @@ function goToMenu() {
     inMenu = true; 
     gameStarted = false;
 
-    // Move the camera back to the menu view
+    //move back to menu view
     camera.position.set(15, 25, 25);
     camera.lookAt(15, 25, -50);
 
@@ -1385,7 +1394,7 @@ function goToMenu() {
 let currentWeapon = "cannon";
 function handleKeyDown(event) 
 {
-    const rotationSpeed = Math.PI / 180; // 2x faster; 
+    const rotationSpeed = Math.PI / 180;
 
     //arrow keys to aim cannon
     if (event.key === 'ArrowUp') {
@@ -1405,10 +1414,10 @@ function handleKeyDown(event)
         cannonAttached = true;
     
         lastEnemyFireTime = clock.getElapsedTime();
-        isEnemyPreparingToShoot = true; // Enemy starts preparing
+        isEnemyPreparingToShoot = true; //enemy starts preparing
         enemyShootStartTime = clock.getElapsedTime();
     
-        // Set the target angle for the enemy cannon and start rotation
+        //set the target angle for the enemy cannon and start rotation
         enemyTargetAngle = calculateEnemyCannonAngle();
         // isEnemyRotating = true;
     }
@@ -1428,17 +1437,17 @@ function handleKeyDown(event)
 
     else if (event.key === '1') {
         if (currentWeapon !== 'rocketLauncher') {
-            // Switch to Rocket Launcher
+            //switch to rocket launcher
             currentWeapon = 'rocketLauncher';
             cannon.visible = false;
             rocketLauncher.visible = true;
 
-            // Set position of rocket launcher
+            //set rocket launcher
             rocketLauncher.position.set(-4, -0.8, 1)
         }
     }   
     else if (event.key === 'x') {
-        removeEnemies(); // Call the function when 'x' is pressed
+        removeEnemies(); 
     }
 
     else if (event.key === '2') {
@@ -1451,7 +1460,7 @@ function handleKeyDown(event)
 
     if (event.key === 'Escape') {
         if (!inMenu) {
-            goToMenu(); // Return to the menu if in the game
+            goToMenu(); //return to the menu if in the game
         }
     }
     
@@ -1477,12 +1486,12 @@ function handleKeyDown(event)
             .multiply(toOrigin)
             .multiply(scaling);
     
-        const enemyPivotX = 0.75;  // Positive to flip the pivot point
+        const enemyPivotX = 0.75;  
         const enemyToOrigin = translationMatrix(-enemyPivotX, 0, -pivotZ);
         const enemyRotation = new THREE.Matrix4().multiply(
             rotationMatrixZ(enemyCannonAngle)
         ).multiply(
-            rotationMatrixY(Math.PI)  // Rotate 180 around Y axis to face the opposite direction
+            rotationMatrixY(Math.PI)  
         );
         const enemyFromOrigin = translationMatrix(enemyPivotX, 0, pivotZ);
         const enemyToPosition = translationMatrix(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
@@ -1501,6 +1510,7 @@ function handleKeyDown(event)
         enemyCannon.matrixAutoUpdate = false;
     }
     else if (currentWeapon === 'cannon' && cannon) {
+
         //reset cannon position and apply transformations for pivot rotation
         cannon.position.set(cannonBasePosition.x, cannonBasePosition.y, cannonBasePosition.z);
         enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
@@ -1518,12 +1528,12 @@ function handleKeyDown(event)
             .multiply(rotation)
             .multiply(toOrigin);
 
-        const enemyPivotX = 0.75;  // Positive to flip the pivot point
+        const enemyPivotX = 0.75; 
         const enemyToOrigin = translationMatrix(-enemyPivotX, 0, -pivotZ);
         const enemyRotation = new THREE.Matrix4().multiply(
             rotationMatrixZ(enemyCannonAngle)
         ).multiply(
-            rotationMatrixY(Math.PI)  // Rotate 180 around Y axis to face the opposite direction
+            rotationMatrixY(Math.PI) 
         );
         const enemyFromOrigin = translationMatrix(enemyPivotX, 0, pivotZ);
         const enemyToPosition = translationMatrix(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
@@ -1568,7 +1578,7 @@ function onWindowResize() {
 }
 
 // const defaultCameraPosition = new THREE.Vector3(-5, 0, 9);
-const defaultCameraRotation = camera.rotation.clone(); // Clone to store initial rotation
+const defaultCameraRotation = camera.rotation.clone(); 
 
 function updateCameraPosition(deltaTime) {
     const currentTime = clock.getElapsedTime();
@@ -1602,7 +1612,7 @@ function updateCameraPosition(deltaTime) {
         controls.enabled = false;
         isInResetDelay = true;
     }
-    else if (isEnemyPreparingToShoot || isEnemyRotating) {  // Keep camera on enemy while preparing/rotating
+    else if (isEnemyPreparingToShoot || isEnemyRotating) {  //keep camera on enemy
         camera.position.lerp(enemyDefaultCameraPosition, blendingFactor);
         camera.rotation.copy(enemyDefaultCameraRotation);
         controls.enabled = false;
@@ -1615,7 +1625,7 @@ function updateCameraPosition(deltaTime) {
         isInResetDelay = false;
     }
 }
-// Handle window resize
+
 window.addEventListener('resize', onWindowResize, false);
 
 
@@ -1627,8 +1637,8 @@ function createSplash(position, isEnemy4 = false) {
         splash = null;
     }
 
-    // Bigger splash size for Enemy 4
-    const splashSize = isEnemy4 ? 1.2 : 0.3;  // 4x bigger for Enemy 4
+    //bigger splash size for Enemy 4
+    const splashSize = isEnemy4 ? 1.2 : 0.3;  
     const splashGeometry = new THREE.SphereGeometry(splashSize, 16, 16); 
     const splashMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, transparent: true, opacity: 1 });
     splash = new THREE.Mesh(splashGeometry, splashMaterial);
@@ -1640,7 +1650,7 @@ function createSplash(position, isEnemy4 = false) {
     splashStartTime = clock.getElapsedTime();
 }
 
-// Function to update the splash effect (growing and fading over time)
+//makes the splash grow and fade effect
 function updateSplash() {
 
     if (splash) 
@@ -1648,8 +1658,8 @@ function updateSplash() {
         const elapsed = clock.getElapsedTime() - splashStartTime;
 
         //grow it -> fade over time
-        splash.scale.set(1 + elapsed, 1 + elapsed, 1 + elapsed); //increase scale over time
-        splash.material.opacity = 1 - (elapsed / splashDuration); //fade out over time
+        splash.scale.set(1 + elapsed, 1 + elapsed, 1 + elapsed); 
+        splash.material.opacity = 1 - (elapsed / splashDuration); 
 
         //remove splash after time elapsed
         if (elapsed >= splashDuration) {
@@ -1661,14 +1671,15 @@ function updateSplash() {
 }
 
 
-// Function to create collision between cannon ball and enemy
+
 let health_val = 0.3; // health value for big bro
-let maxWidth1 = 1.8; // Maximum width of the big bro health bar
+//represents the health of a character
+let maxWidth1 = 1.8; 
 let maxWidth2 = 1.8;
 let maxWidth3 = 1.8;
 let maxWidth4 = 1.8;
-let maxWidth5 = 1.8; // For Enemy 3 (purple cube)
-let maxWidth6 = 1000; // For Enemy 4 (green cube) - BRO IS THANOS (HE KEEPS GETTING ONE SHOT SO I UPPED HIS HEALTH LOLOL)
+let maxWidth5 = 1.8; 
+let maxWidth6 = 1000; 
 
 const originalPositions = {
     player: new THREE.Vector3(cube.position.x, cube.position.y, cube.position.z),
@@ -1688,9 +1699,95 @@ const originalPositions = {
     line5: new THREE.Vector3(line5.position.x, line5.position.y, line5.position.z),
 };
 
+function startLevel1() {
+    currentLevel = 1;
+    
+    // reset health bars
+    maxWidth1 = 1.8;
+    maxWidth2 = 1.8;
+    maxWidth3 = 1.8;
+    maxWidth4 = 1.8;
+    
+    
+    healthBar1.scale.set(1, 1, 1);
+    healthBar2.scale.set(1, 1, 1);
+    healthBar3.scale.set(1, 1, 1);
+    healthBar4.scale.set(1, 1, 1);
+    
+  
+    line1.scale.set(1, 1, 1);
+    line2.scale.set(1, 1, 1);
+    line3.scale.set(1, 1, 1);
+    line4.scale.set(1, 1, 1);
+    
 
+    healthBar1.material.color.set(0x228B22);
+    healthBar2.material.color.set(0x228B22);
+    healthBar3.material.color.set(0x228B22);
+    healthBar4.material.color.set(0x228B22);
+    
+
+    healthBar1.position.set(-5, 1.8, 0);
+    line1.position.copy(healthBar1.position);
+    
+    healthBar2.position.set(-7.3, 1, 0);
+    line2.position.copy(healthBar2.position);
+    
+    healthBar3.position.set(17, 1.8, 0);
+    line3.position.copy(healthBar3.position);
+    
+    healthBar4.position.set(21, 1.8, 0);
+    line4.position.copy(healthBar4.position);
+    
+
+    enemyCube1.visible = true;
+    enemyCube2.visible = true;
+    healthBar3.visible = true;
+    healthBar4.visible = true;
+    line3.visible = true;
+    line4.visible = true;
+    
+    //reset position s 
+    enemyCube1.position.set(17, -0.3, 0);
+    enemyCube2.position.set(21, -0.3, 0);
+    
+  
+    if (pirateShip) pirateShip.visible = false;
+    if (log) log.visible = false;
+    enemyCube3.visible = false;
+    healthBar5.visible = false;
+    line5.visible = false;
+    enemyCube4.visible = false;
+    healthBar6.visible = false;
+    line6.visible = false;
+    
+
+    //show enemies first when level 1 starts
+    const enemyViewPosition = new THREE.Vector3(25, 5, 9);  
+    const transitionDuration = 2;
+    const startTime = clock.getElapsedTime();
+    
+    function transitionCamera() {
+        const currentTime = clock.getElapsedTime();
+        const elapsed = currentTime - startTime;
+        
+        if (elapsed < transitionDuration) {
+            camera.position.lerp(enemyViewPosition, 0.05);
+            requestAnimationFrame(transitionCamera);
+        } else if (elapsed < transitionDuration * 2) {
+            camera.position.lerp(defaultCameraPosition, 0.05);
+            requestAnimationFrame(transitionCamera);
+        } else {
+            camera.position.copy(defaultCameraPosition);
+            camera.rotation.copy(defaultCameraRotation);
+            controls.enabled = true;
+        }
+    }
+    
+    controls.enabled = false;
+    transitionCamera();
+}
 function startLevel2() {
-
     currentLevel = 2;
     removeEnemies();
     
@@ -1698,17 +1795,17 @@ function startLevel2() {
     maxWidth1 = 1.8; // Reset big bro health
     maxWidth2 = 1.8; // Reset lil bro health
     
-    // Reset health bar visuals
+
     healthBar1.scale.set(1.8, 1, 1);
     healthBar2.scale.set(1.8, 1, 1);
     line1.scale.set(1.8, 1, 1);
     line2.scale.set(1.8, 1, 1);
     
-    // Reset health bar colors
+
     healthBar1.material.color.set(0x228B22);
     healthBar2.material.color.set(0x228B22);
     
-    // Make sure characters and their health bars are visible
+
     cube.visible = true;
     lilbro.visible = true;
     healthBar1.visible = true;
@@ -1716,36 +1813,36 @@ function startLevel2() {
     line1.visible = true;
     line2.visible = true;
     
-    // Show level 2 assets
+
     if (pirateShip) pirateShip.visible = true;
     if (log) log.visible = true;
     
-    // Position and show enemy3 (pirate)
+
     enemyCube3.position.set(14, -0.6, 0);
     enemyCube3.visible = true;
     if (pirateModel) pirateModel.visible = true;
     
-    // Update health bar positions
+
     healthBar5.position.set(14, 1.2, 0);
     line5.position.copy(healthBar5.position);
     
-    // Store original positions for return movement
+
     originalPositions.enemy3 = new THREE.Vector3(14, -0.6, 0);
     originalPositions.healthBar5 = new THREE.Vector3(14, 1.2, 0);
     originalPositions.line5 = new THREE.Vector3(14, 1.2, 0);
     
-    // Update enemy cannon position
+
     enemyCannon.visible = true;
     enemyCannon.position.set(enemy3CannonPosition.x, enemy3CannonPosition.y, enemy3CannonPosition.z);
     
-    // Show health bars and collision boxes
+
     healthBar5.visible = true;
     line5.visible = true;
     enemyCube4.visible = true;
     healthBar6.visible = true;
     line6.visible = true;
     
-    // Reset health bars
+
     maxWidth5 = 20;
     maxWidth6 = 100000;
     healthBar5.scale.set(1.8, 1, 1);
@@ -1753,15 +1850,15 @@ function startLevel2() {
     line5.scale.set(1.8, 1, 1);
     line6.scale.set(1.8, 1, 1);
     
-    // Reset health bar colors
+
     healthBar5.material.color.set(0x228B22);
     healthBar6.material.color.set(0x228B22);
     
-    // Remove existing text objects
+    //remove existing text objects
     removeAllTextObjects();
     
-    // Start camera transition
-    const enemyViewPosition = new THREE.Vector3(25, 0, 9);
+    //same camera transition as level 1
+    const enemyViewPosition = new THREE.Vector3(25, 5, 9);
     const transitionDuration = 2;
     const startTime = clock.getElapsedTime();
     
@@ -1797,21 +1894,21 @@ function createNextLevelText() {
             });
 
             const nextLevelMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0xffd700,  // Gold color
-                emissive: 0x332200 // Slight glow effect
+                color: 0xffd700,  
+                emissive: 0x332200 
             });
             const nextLevelText = new THREE.Mesh(nextLevelGeometry, nextLevelMaterial);
 
-            // Position below the victory text
+            
             nextLevelGeometry.computeBoundingBox();
             const textWidth = nextLevelGeometry.boundingBox.max.x - nextLevelGeometry.boundingBox.min.x;
             nextLevelText.position.set(-5 - textWidth/2, 0, -10);
 
-            // Add hover effect
+            //hover effect
             nextLevelText.userData.isInteractive = true;
             nextLevelText.userData.originalColor = nextLevelMaterial.color.clone();
             
-            // Add click handler for level transition
+
             nextLevelText.userData.onClick = function() {
                 console.log("Next Level clicked!");
                 removeAllTextObjects();
@@ -1822,7 +1919,7 @@ function createNextLevelText() {
             maxWidth3 = 1.8;
             maxWidth4 = 1.8;
 
-            // Add hover effect handler
+
             window.addEventListener('mousemove', (event) => {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -1831,7 +1928,7 @@ function createNextLevelText() {
                 const intersects = raycaster.intersectObject(nextLevelText);
                 
                 if (intersects.length > 0) {
-                    nextLevelMaterial.color.setHex(0xff0000); // Red on hover
+                    nextLevelMaterial.color.setHex(0xff0000); //turns red
                     document.body.style.cursor = 'pointer';
                 } else {
                     nextLevelMaterial.color.copy(nextLevelText.userData.originalColor);
@@ -1839,7 +1936,7 @@ function createNextLevelText() {
                 }
             });
 
-            // Add click handler
+            
             window.addEventListener('click', (event) => {
                 mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
                 mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
@@ -1889,7 +1986,7 @@ function checkGameState() {
 }
 
 function handleEnemy4Collision() {
-    // Create bounding box for enemy4
+    //bounding box enemy4
     let enemy4_bb = new THREE.Box3().setFromObject(enemyCube4);
     
     if (projectile && cannonball_bb.intersectsBox(enemy4_bb)) {
@@ -1932,7 +2029,8 @@ function handleEnemy4Collision() {
 }
 
 function updateEnemy4Physics(deltaTime) {
-    if (isEnemy4Flying) {
+    if (isEnemy4Flying) 
+    {
         //gravity to vertical velocity
         enemy4Velocity.y += ENEMY4_GRAVITY * deltaTime;
         
@@ -1942,7 +2040,7 @@ function updateEnemy4Physics(deltaTime) {
         
         //update health bar and outline position to follow the enemy
         healthBar6.position.x = enemyCube4.position.x;
-        healthBar6.position.y = enemyCube4.position.y + 1.8; //health bar stays above enemy
+        healthBar6.position.y = enemyCube4.position.y + 1.8; 
         line6.position.copy(healthBar6.position);
         
         //remove if enemy hits water
@@ -1984,10 +2082,7 @@ function collision() {
     cube_bb.setFromObject(cube);
 
     // Calculate projectile momentum and velocity magnitude at impact
-    const projectileMass = 1; // Mass of projectile
-    const enemyMass = 2; // Mass of enemy
-
-    // Check collision with Enemy 3 (Purple Cube)
+    //collision with Enemy 3 (Purple Cube)
     if (projectile && cannonball_bb.intersectsBox(enemyCube3_bb)) {
         enemy3Velocity.set(
             projectileVelocity.x * 0.2,
@@ -2015,7 +2110,7 @@ function collision() {
 
         isEnemy3Flying = true;
     }
-    // Check collision with enemyCube2
+    //collision with enemyCube2
     else if (projectile && cannonball_bb.intersectsBox(enemyCube2_bb)) {
         enemy2Velocity.set(
             projectileVelocity.x * 0.2,
@@ -2041,7 +2136,7 @@ function collision() {
 
         isEnemy2Flying = true;
     }
-    // Check collision with enemyCube1
+    //ollision with enemyCube1
     else if (projectile && cannonball_bb.intersectsBox(enemyCube1_bb)) {
         enemy1Velocity.set(
             projectileVelocity.x * 0.2,
@@ -2049,6 +2144,7 @@ function collision() {
             0
         );
     
+        
         maxWidth3 -= health_val;
         healthBar3.scale.set(maxWidth3, 1, 1);
         line3.scale.set(maxWidth3, 1, 1);
@@ -2091,7 +2187,7 @@ function enemyCollision() {
     let cube_bb = new THREE.Box3().setFromObject(cube);
     let whiteCube_bb = new THREE.Box3().setFromObject(lilbro);
 
-    // Check collision between enemy projectile and player
+    //collision between enemy projectile and player
     if (enemyProjectile_bb.intersectsBox(cube_bb)) {
         playerVelocity.set(
             enemyProjectileVelocity.x * 0.3,
@@ -2116,7 +2212,6 @@ function enemyCollision() {
             line1.visible = false;
             line1.visible = false;
 
-            // Move enemyCannon to enemy2Cannon position
             cannon.visible = false;
             lilBroCannon.position.copy(lilBroCannonPosition);
             lilBroCannon.visible = true;
@@ -2126,7 +2221,7 @@ function enemyCollision() {
         scene.remove(enemyProjectile);
         enemyProjectile = null;
 
-        // Check if the player also collides with lil bro
+        //if the player also collides with lil bro
         if (cube_bb.intersectsBox(whiteCube_bb)) {
             lilBroVelocity.set(
                 enemyProjectileVelocity.x * 0.2,
@@ -2153,7 +2248,7 @@ function enemyCollision() {
             isLilBroFlying = true;
         }
     }
-    // Check collision between enemy projectile and lil bro directly
+    //collision between enemy projectile and lil bro 
     else if (enemyProjectile_bb.intersectsBox(whiteCube_bb)) {
         lilBroVelocity.set(
             enemyProjectileVelocity.x * 0.2,
@@ -2185,10 +2280,10 @@ function enemyCollision() {
 
 function updatePhysics(deltaTime) {
     if (isEnemy1Flying) {
-        // Apply gravity
+        //gravity effect
         enemy1Velocity.y += ENEMY4_GRAVITY * deltaTime;
         
-        // Ground friction when touching the surface
+        //friction when touching the surface
         if (enemyCube1.position.y <= -0.5 && enemyCube1.position.x <= 23.5) {
             const frictionCoeff = 0.8;
             const normalForce = Math.abs(ENEMY4_GRAVITY);
@@ -2201,54 +2296,54 @@ function updatePhysics(deltaTime) {
             }
         }
         
-        // Update position
+        
         enemyCube1.position.x += enemy1Velocity.x * deltaTime;
         enemyCube1.position.y += enemy1Velocity.y * deltaTime;
         
-        // Update health bar and outline positions
+        
         healthBar3.position.x = enemyCube1.position.x;
-        healthBar3.position.y = enemyCube1.position.y + 3;
+        healthBar3.position.y = enemyCube1.position.y + 1.8;
         line3.position.copy(healthBar3.position);
         enemyCannon.position.x = enemyCube1.position.x;
         enemyCannon.position.y = enemyCube1.position.y;
 
-        // Check for collision with enemy2
+        
         enemyCube1_bb.setFromObject(enemyCube1);
         enemyCube2_bb.setFromObject(enemyCube2);
         
         if (enemyCube1_bb.intersectsBox(enemyCube2_bb) && enemyCube2.visible) {
-            // Calculate collision direction and speed
+            //collision direction and speed
             const collisionDirection = new THREE.Vector3()
                 .subVectors(enemyCube2.position, enemyCube1.position)
                 .normalize();
         
             const impactSpeed = enemy1Velocity.length();
-            const horizontalBoost = 2.0; // Increase horizontal movement
+            const horizontalBoost = 2.0; 
         
-            // Set enemy2's velocity based on the collision
+            //  nemy2's velocity based on the collision
             enemy2Velocity.set(
-                collisionDirection.x * impactSpeed * horizontalBoost, // Boosted horizontal velocity
-                KNOCKBACK_FORCE * 0.8, // Increased vertical component
+                collisionDirection.x * impactSpeed * horizontalBoost, //boosted horizontal velocity
+                KNOCKBACK_FORCE * 0.8,
                 0
             );
         
-            // Reduce enemy1's velocity after impact
+            //reduce enemy1's velocity after impact
             enemy1Velocity.multiplyScalar(0.5);
-            enemy1Velocity.x *= 0.3; // Reduce horizontal movement more
+            enemy1Velocity.x *= 0.3; 
         
             isEnemy2Flying = true;
         
-            // Optional: Add some randomness to make it more dynamic
+            
             enemy2Velocity.x += (Math.random() - 0.5) * 0.5;
             enemy2Velocity.y += Math.random() * 0.5;
         
-            // Stop Enemy 1 movement after collision
+            //Enemy 1 movement after collision stops
             isEnemy1Flying = false;
-            enemy1Velocity.set(0, 0, 0); // Reset velocity
+            enemy1Velocity.set(0, 0, 0); 
             isEnemy1MovingBack = true;  // Begin moving back
         }
         
-        // Ground collision and bounce handling
+        //ground collision and bounce handling
         if (enemyCube1.position.y <= -0.3 && enemyCube1.position.x <= 23.5) {
             const bounceRestitution = 0.3;
             enemy1Velocity.y = Math.abs(enemy1Velocity.y) * bounceRestitution;
@@ -2267,12 +2362,12 @@ function updatePhysics(deltaTime) {
             }
         }
 
-        // Water collision
+        
         if (enemyCube1.position.y <= water.position.y) {
             isEnemy1Flying = false;
             createSplash(enemyCube1.position.clone());
             playSplashSound();
-            playScreamSound();
+            // playScreamSound();
             enemyCube1.visible = false;
             healthBar3.visible = false;
             line3.visible = false;
@@ -2289,21 +2384,21 @@ function updatePhysics(deltaTime) {
             enemy2Velocity.x *= friction;
         }
         
-        // Update enemy2 position
+        //update enemy2 position
         enemyCube2.position.x += enemy2Velocity.x * deltaTime;
         enemyCube2.position.y += enemy2Velocity.y * deltaTime;
         
-        // Update health bar and outline positions
+        //health bar and outline positions
         healthBar4.position.x = enemyCube2.position.x;
-        healthBar4.position.y = enemyCube2.position.y + 3;
+        healthBar4.position.y = enemyCube2.position.y + 1.8;
         line4.position.copy(healthBar4.position);
 
-        // Check boundary conditions
+        //boundary conditions for their rafts
         if (enemyCube2.position.x >= 21.5 && enemyCube2.position.y <= -0.5) {
             isEnemy2Flying = false;
             createSplash(enemyCube2.position.clone());
             playSplashSound();
-            playScreamSound();
+            // playScreamSound();
             enemyCube2.visible = false;
             maxWidth4 = 0;
             healthBar4.visible = false;
@@ -2311,7 +2406,7 @@ function updatePhysics(deltaTime) {
             enemyCube2.position.set(100, 100, 100);
         }
 
-        // Ground collision handling
+        //ground collision
         if (enemyCube2.position.y <= -0.5 && enemyCube2.position.x <= 23.5) {
             enemy2Velocity.y = Math.abs(enemy2Velocity.y) * 0.5;
             enemyCube2.position.y = -0.5;
@@ -2329,12 +2424,12 @@ function updatePhysics(deltaTime) {
             }
         }
 
-        // Water collision
+        
         if (enemyCube2.position.y <= water.position.y) {
             isEnemy2Flying = false;
             createSplash(enemyCube2.position.clone());
             playSplashSound();
-            playScreamSound();
+            // playScreamSound();
             enemyCube2.visible = false;
             healthBar4.visible = false;
             line4.visible = false;
@@ -2345,7 +2440,7 @@ function updatePhysics(deltaTime) {
         enemy3Velocity.y += ENEMY4_GRAVITY * deltaTime;
         
         if (enemyCube3.position.y <= -0.58 && enemyCube3.position.x <= 16) {
-            const friction = 0.45; // Increased friction (was 0.65)
+            const friction = 0.45; 
             enemy3Velocity.x *= friction;
         }
         
@@ -2353,7 +2448,7 @@ function updatePhysics(deltaTime) {
         enemyCube3.position.y += enemy3Velocity.y * deltaTime;
         
         healthBar5.position.x = enemyCube3.position.x;
-        healthBar5.position.y = enemyCube3.position.y + 3;
+        healthBar5.position.y = enemyCube3.position.y + 1.8;
         line5.position.copy(healthBar5.position);
     
         if (enemyCube3.position.y <= -0.58 && enemyCube3.position.x <= 17) {
@@ -2377,7 +2472,7 @@ function updatePhysics(deltaTime) {
             isEnemy3Flying = false;
             createSplash(enemyCube3.position.clone());
             playSplashSound();
-            playScreamSound();
+            // playScreamSound();
             enemyCube3.visible = false;
             healthBar5.visible = false;
             //make enemy3 health 0
@@ -2401,7 +2496,7 @@ function updatePhysics(deltaTime) {
             isPlayerFlying = false;
             cube.position.y = -0.25;
             playerVelocity.set(0, 0, 0);
-            isPlayerMovingBack = true;  // Start lerping back
+            isPlayerMovingBack = true;  //lerp back
         }
 
         healthBar1.position.x = cube.position.x;
@@ -2419,7 +2514,7 @@ function updatePhysics(deltaTime) {
             isLilBroFlying = false;
             lilbro.position.y = -0.5;
             lilBroVelocity.set(0, 0, 0);
-            isLilBroMovingBack = true;  // Start lerping back
+            isLilBroMovingBack = true;  
         }
 
         healthBar2.position.x = lilbro.position.x;
@@ -2429,13 +2524,13 @@ function updatePhysics(deltaTime) {
 }
 
 window.addEventListener('click', (event) => {
-    // Get the mouse position in normalized device coordinates (-1 to +1)
+    
     const mouse = new THREE.Vector2(
         (event.clientX / window.innerWidth) * 2 - 1,
         -(event.clientY / window.innerHeight) * 2 + 1
     );
 
-    // Raycast from the camera to the mouse position
+    //raycast from camera to mouse position
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(mouse, camera);
 
@@ -2489,8 +2584,8 @@ function removeEnemies() {
 camera.add(camera2);
 scene.add(camera);
 
-camera.position.set(15, 25, 25); // Position near the text
-camera.lookAt(15, 25, -50); // Look at the text position
+camera.position.set(15, 25, 25); 
+camera.lookAt(15, 25, -50); 
 // controls.enabled = false;
 // Dotted path for the projectile
 const dotMaterial = new THREE.PointsMaterial({ color: 0xff0000, size: 0.2 });
@@ -2500,23 +2595,19 @@ const dotGeometry = new THREE.BufferGeometry();
 const dotPath = new THREE.Points(dotGeometry, dotMaterial);
 scene.add(dotPath);
 
-const cubeHelper = new THREE.BoxHelper(cube, 0xff0000); // Red for player
-const whiteCubeHelper = new THREE.BoxHelper(lilbro, 0x00ff00); // Green for lil bro
-const enemy1Helper = new THREE.BoxHelper(enemyCube1, 0x0000ff); // Blue for enemy1
-const enemy2Helper = new THREE.BoxHelper(enemyCube2, 0xff00ff); // Magenta for enemy2
-const enemy3Helper = new THREE.BoxHelper(enemyCube3, 0xffff00); // Yellow for enemy3
-const enemy4Helper = new THREE.BoxHelper(enemyCube4, 0x00ffff); // Cyan for enemy4
-enemy1Helper.visible = false;
-enemy2Helper.visible = false;
-enemy3Helper.visible = false;
-enemy4Helper.visible = false;
+const cubeHelper = new THREE.BoxHelper(cube, 0xff0000); 
+const whiteCubeHelper = new THREE.BoxHelper(lilbro, 0x00ff00); 
+const enemy1Helper = new THREE.BoxHelper(enemyCube1, 0x0000ff); 
+const enemy2Helper = new THREE.BoxHelper(enemyCube2, 0xff00ff); 
+const enemy3Helper = new THREE.BoxHelper(enemyCube3, 0xffff00); 
+const enemy4Helper = new THREE.BoxHelper(enemyCube4, 0x00ffff); 
 
-scene.add(cubeHelper);
-// scene.add(whiteCubeHelper);
-scene.add(enemy1Helper);
-scene.add(enemy2Helper);
-scene.add(enemy3Helper);
-scene.add(enemy4Helper);
+// scene.add(cubeHelper);
+// // scene.add(whiteCubeHelper);
+// scene.add(enemy1Helper);
+// scene.add(enemy2Helper);
+// scene.add(enemy3Helper);
+// scene.add(enemy4Helper);
 
 function updateBoxHelpers() {
     if (cube.visible) {
@@ -2568,7 +2659,7 @@ function calculateCondensedPath(startPosition, angle, speed, numDots = 5) {
     const gravity = -9.8; 
     const timeStep = 0.1;//time step for each dot
   
-
+    //simulate what the projectile path would look like without actually shooting
     let t = 0;
     for (let i = 0; i < numDots; i++) {
         t += timeStep; //increment time for each dot
@@ -2587,13 +2678,13 @@ function calculateCondensedPath(startPosition, angle, speed, numDots = 5) {
 function handleCharacterCollisions() {
     const BOUNCE_FACTOR = 0.8;
     const MAX_HORIZONTAL_VELOCITY = 3.0;
-    const DAMPING_FACTOR = 0.95; // Gradual reduction factor (closer to 1 = slower reduction)
+    const DAMPING_FACTOR = 0.95; 
     const MIN_VELOCITY_THRESHOLD = 0.01; // Stop when velocity is small enough
 
     let player_bb = new THREE.Box3().setFromObject(cube);
     let lilbro_bb = new THREE.Box3().setFromObject(lilbro);
 
-    // Handle collision between player and lil bro
+    // collision between player and lil bro
     if (player_bb.intersectsBox(lilbro_bb)) {
         const collisionNormal = new THREE.Vector3()
             .subVectors(lilbro.position, cube.position)
@@ -2615,22 +2706,22 @@ function handleCharacterCollisions() {
         isPlayerFlying = true;
     }
 
-    // Apply damping to lil bro's velocity
+    // damping to lil bro's velocity
     if (isLilBroFlying) {
         lilBroVelocity.multiplyScalar(DAMPING_FACTOR);
 
-        // Stop lil bro when velocity is below the threshold
+       
         if (Math.abs(lilBroVelocity.x) < MIN_VELOCITY_THRESHOLD) {
             lilBroVelocity.set(0, 0, 0);
             isLilBroFlying = false;
         }
     }
 
-    // Apply damping to player's velocity
+    
     if (isPlayerFlying) {
         playerVelocity.multiplyScalar(DAMPING_FACTOR);
 
-        // Stop player when velocity is below the threshold
+        
         if (Math.abs(playerVelocity.x) < MIN_VELOCITY_THRESHOLD) {
             playerVelocity.set(0, 0, 0);
             isPlayerFlying = false;
@@ -2697,6 +2788,8 @@ function animate() {
     
     updatePhysics(deltaTime);
     handleCharacterCollisions();
+    
+    // enemy movement back to original positions
     if (isEnemy1MovingBack) {
         enemyCube1.position.lerp(originalPositions.enemy1, movementSpeed);
         healthBar3.position.lerp(originalPositions.healthBar3, movementSpeed);
@@ -2704,10 +2797,9 @@ function animate() {
     
         if (enemyCube1.position.distanceTo(originalPositions.enemy1) < 0.01) {
             isEnemy1MovingBack = false;
-            enemy1Velocity.set(0, 0, 0); // Ensure velocity is zero
+            enemy1Velocity.set(0, 0, 0);
         }
     }
-    
     
     if (isEnemy2MovingBack) {
         enemy2Helper.update();
@@ -2742,9 +2834,7 @@ function animate() {
 
     updateEnemy4Physics(deltaTime);
 
-    let time = 0;
-    time += 0.01;
-
+    //update clouds movement depending on wind direction and the strength, faster wind would make the clouds move faster
     clouds.forEach((cloud) => {
         cloud.position.x += windDirection * windStrength * 0.01;
         if (windDirection === 1) {
@@ -2754,39 +2844,36 @@ function animate() {
         }
     });
 
-if (currentGameState === 'playing' && enemiesReadyToFire) {
-    // Only proceed with enemy firing if there are visible enemies
-    const hasVisibleEnemies = (currentLevel === 1 && (enemyCube1.visible || enemyCube2.visible)) || 
-                             (currentLevel === 2 && (enemyCube3.visible || enemyCube4.visible));
-
-    if (!isEnemyRotating && isEnemyPreparingToShoot && currentTime - enemyShootStartTime >= 2.3 && hasVisibleEnemies) {
-        enemyCannon.visible = true;
-        isEnemyRotating = true;
-        
-        if (currentLevel === 2) {
-            if (enemyCube3.visible) {
-                enemyCannon.position.set(enemy3CannonPosition.x, enemy3CannonPosition.y, enemy3CannonPosition.z);
-                enemyCannon.visible = true;
-            } else {
-                enemyCannon.visible = false;
-                isEnemyRotating = false;
-                isEnemyPreparingToShoot = false;
-            }
-        } else {
-            if (enemyCube1.visible) {
-                enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
-                enemyCannon.visible = true;
-            } else {
-                enemyCannon.visible = false;
-                isEnemyRotating = false;
-                isEnemyPreparingToShoot = false;
-            }
-        }
-    }
     
-    // Only rotate and fire if there are visible enemies
-    if (hasVisibleEnemies) {
-        if (isEnemyRotating) {
+    if (currentGameState === 'playing' && enemiesReadyToFire) {
+        const hasVisibleEnemies = (currentLevel === 1 && (enemyCube1.visible || enemyCube2.visible)) || 
+                                 (currentLevel === 2 && (enemyCube3.visible || enemyCube4.visible));
+
+        
+        if (!isEnemyRotating && isEnemyPreparingToShoot && currentTime - enemyShootStartTime >= 2.3 && hasVisibleEnemies) {
+            // cannon visibility and position based on level and active enemy
+            if (currentLevel === 2) {
+                if (enemyCube3.visible) {
+                    enemyCannon.position.set(enemy3CannonPosition.x, enemy3CannonPosition.y, enemy3CannonPosition.z);
+                    enemyCannon.visible = true;
+                } else if (enemyCube4.visible) {
+                    enemyCannon.position.set(enemy4CannonPosition.x, enemy4CannonPosition.y, enemy4CannonPosition.z);
+                    enemyCannon.visible = true;
+                }
+            } else {
+                if (enemyCube1.visible) {
+                    enemyCannon.position.set(enemyCannonPosition.x, enemyCannonPosition.y, enemyCannonPosition.z);
+                    enemyCannon.visible = true;
+                } else if (enemyCube2.visible) {
+                    enemyCannon.position.set(enemy2CannonPosition.x, enemy2CannonPosition.y, enemy2CannonPosition.z);
+                    enemyCannon.visible = true;
+                }
+            }
+            isEnemyRotating = true;
+        }
+
+        // enemy cannon rotation
+        if (isEnemyRotating && hasVisibleEnemies) {
             const rotationSpeed = 0.05;
             const angleDifference = enemyTargetAngle - enemyCannonAngle;
 
@@ -2802,9 +2889,7 @@ if (currentGameState === 'playing' && enemiesReadyToFire) {
                 } else if (currentLevel === 1 && enemyCube1.visible) {
                     currentCannonPosition = enemyCannonPosition;
                 } else {
-                    enemyCannon.visible = false;
-                    isEnemyRotating = false;
-                    return;
+                    currentCannonPosition = enemyCannonPosition; 
                 }
 
                 const enemyToOrigin = translationMatrix(-pivotX, 0, -pivotZ);
@@ -2833,26 +2918,26 @@ if (currentGameState === 'playing' && enemiesReadyToFire) {
             }
         }
 
+        //fire enemy projectile
         if (!isEnemyRotating && isEnemyPreparingToShoot && currentTime - enemyShootStartTime >= enemyFireDelay) {
             fireEnemyProjectile(enemyCannonAngle);
             playShootSound();
-            enemyCannon.visible = false;
             isEnemyPreparingToShoot = false;
             projectileRemovedTime = null;
         }
+    } else if (currentGameState === 'victory') {
+        enemyCannon.visible = false;
+        isEnemyPreparingToShoot = false;
+        isEnemyRotating = false;
     }
-} else if (currentGameState === 'victory') {
-    enemyCannon.visible = false;
-    isEnemyPreparingToShoot = false;
-    isEnemyRotating = false;
-}
+
+    //player projectile
     if (isFiring && projectile) {
         projectileVelocity.x += windDirection * windStrength * deltaTime;
         projectileVelocity.add(gravityVector.clone().multiplyScalar(deltaTime));
         projectile.position.add(projectileVelocity.clone().multiplyScalar(deltaTime));
 
         if (projectile.position.y <= water.position.y) {
-            
             if (projectile.position.x < 15 || projectile.position.x > 23.5) {
                 playSplashSound();
                 createSplash(projectile.position.clone());
@@ -2860,14 +2945,12 @@ if (currentGameState === 'playing' && enemiesReadyToFire) {
             isFiring = false;
             scene.remove(projectile);
             projectileRemovedTime = clock.getElapsedTime();
-            
-            //change wind for every turn
-            // updateWind();
         }
 
         collision();
     }
 
+    //enemy projectile
     if (enemyProjectile) {
         enemyCollision();
         enemyProjectileVelocity.x += windDirection * windStrength * deltaTime;
@@ -2885,14 +2968,10 @@ if (currentGameState === 'playing' && enemiesReadyToFire) {
 
     updateSplash();
 
-    time = clock.getElapsedTime();
+    //make the scene better looking
+    let time = clock.getElapsedTime();
     raft.position.y = -0.9 + Math.sin(time * 2) * 0.1;
     raft2.position.y = -0.9 + Math.sin(time * 6) * 0.1;
-    cube.position.y = Math.sin(time * 2) * 0.1;
-    lilbro.position.y = (-0.6) + Math.sin(time * 2) * 0.1;
-    enemyCube1.position.y = (-0.25) + Math.sin(time * 2) * 0.1;
-    enemyCube2.position.y = (-0.25) +  Math.sin(time * 2) * 0.1;
-
     updateCameraPosition(deltaTime);
     waterShaderMaterial.uniforms.uTime.value = currentTime;
 
