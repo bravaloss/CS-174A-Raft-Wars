@@ -1,0 +1,417 @@
+{
+  "accessors": [
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 2253,
+      "max": [
+        2.486177921295166,
+        1.4146909713745117,
+        2.2505319118499756
+      ],
+      "min": [
+        -2.5223140716552734,
+        -1.495110034942627,
+        -2.806442975997925
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 27036,
+      "componentType": 5126,
+      "count": 2253,
+      "max": [
+        0.9978889226913452,
+        0.9985299706459045,
+        0.9999359846115112
+      ],
+      "min": [
+        -0.9978889226913452,
+        -0.9992997646331787,
+        -1.0
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 2253,
+      "max": [
+        1.0,
+        0.9998676776885986,
+        0.9992777705192566,
+        1.0
+      ],
+      "min": [
+        -0.99970942735672,
+        -0.9999040961265564,
+        -0.9997273087501526,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 2253,
+      "max": [
+        0.9972671866416931,
+        0.9774066805839539
+      ],
+      "min": [
+        0.0027423501014709473,
+        0.0027337069623172283
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 11148,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 54072,
+      "componentType": 5126,
+      "count": 957,
+      "max": [
+        2.714303970336914,
+        0.9806362986564636,
+        2.3075098991394043
+      ],
+      "min": [
+        -0.479567289352417,
+        -0.36968380212783813,
+        -0.9625778794288635
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 2,
+      "byteOffset": 65556,
+      "componentType": 5126,
+      "count": 957,
+      "max": [
+        0.9962437152862549,
+        1.0,
+        0.999639093875885
+      ],
+      "min": [
+        -0.9962437152862549,
+        -1.0,
+        -0.999826192855835
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 3,
+      "byteOffset": 36048,
+      "componentType": 5126,
+      "count": 957,
+      "max": [
+        0.9866902232170105,
+        0.9993982315063477,
+        0.999997615814209,
+        1.0
+      ],
+      "min": [
+        -1.0,
+        -0.9997060894966125,
+        -0.9998316764831543,
+        1.0
+      ],
+      "type": "VEC4"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 18024,
+      "componentType": 5126,
+      "count": 957,
+      "max": [
+        0.9740599989891052,
+        0.9970138072967529
+      ],
+      "min": [
+        0.002937853103503585,
+        0.0029323690105229616
+      ],
+      "type": "VEC2"
+    },
+    {
+      "bufferView": 0,
+      "byteOffset": 44592,
+      "componentType": 5125,
+      "count": 4125,
+      "type": "SCALAR"
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "MooKorea (https://sketchfab.com/MooKorea)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/lord-pirate-maplestory-5a6fbb9b3ccf48e0b76850c1c837c823",
+      "title": "Lord Pirate | MapleStory"
+    },
+    "generator": "Sketchfab-13.24.1",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 61092,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 25680,
+      "byteOffset": 61092,
+      "byteStride": 8,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 77040,
+      "byteOffset": 86772,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 51360,
+      "byteOffset": 163812,
+      "byteStride": 16,
+      "name": "floatBufferViews",
+      "target": 34962
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 215172,
+      "uri": "scene.bin"
+    }
+  ],
+  "images": [
+    {
+      "uri": "textures/Sprout_baseColor.png"
+    },
+    {
+      "uri": "textures/Sprout_metallicRoughness.png"
+    },
+    {
+      "uri": "textures/Sprout_normal.png"
+    },
+    {
+      "uri": "textures/Pirate_baseColor.png"
+    },
+    {
+      "uri": "textures/Pirate_metallicRoughness.png"
+    },
+    {
+      "uri": "textures/Pirate_normal.png"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "Sprout",
+      "normalTexture": {
+        "index": 2
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 0
+        },
+        "metallicFactor": 0.0,
+        "metallicRoughnessTexture": {
+          "index": 1
+        }
+      }
+    },
+    {
+      "doubleSided": true,
+      "name": "Pirate",
+      "normalTexture": {
+        "index": 5
+      },
+      "pbrMetallicRoughness": {
+        "baseColorTexture": {
+          "index": 3
+        },
+        "metallicRoughnessTexture": {
+          "index": 4
+        }
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "Pirate-material",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0,
+            "TANGENT": 2,
+            "TEXCOORD_0": 3
+          },
+          "indices": 4,
+          "material": 1,
+          "mode": 4
+        }
+      ]
+    },
+    {
+      "name": "Sprout-material",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 6,
+            "POSITION": 5,
+            "TANGENT": 7,
+            "TEXCOORD_0": 8
+          },
+          "indices": 9,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        2.220446049250313e-16,
+        -1.0,
+        0.0,
+        0.0,
+        1.0,
+        2.220446049250313e-16,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2,
+        4
+      ],
+      "name": "Collada visual scene group"
+    },
+    {
+      "children": [
+        3
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        -0.7661734,
+        0.260387,
+        2.788187,
+        1.0
+      ],
+      "name": "Cube.008"
+    },
+    {
+      "mesh": 0,
+      "name": "Pirate-material"
+    },
+    {
+      "children": [
+        5
+      ],
+      "matrix": [
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        1.049294,
+        -0.1815481,
+        0.9598543,
+        1.0
+      ],
+      "name": "NurbsPath.007"
+    },
+    {
+      "mesh": 1,
+      "name": "Sprout-material"
+    }
+  ],
+  "samplers": [
+    {
+      "magFilter": 9729,
+      "minFilter": 9987,
+      "wrapS": 10497,
+      "wrapT": 10497
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ],
+  "textures": [
+    {
+      "sampler": 0,
+      "source": 0
+    },
+    {
+      "sampler": 0,
+      "source": 1
+    },
+    {
+      "sampler": 0,
+      "source": 2
+    },
+    {
+      "sampler": 0,
+      "source": 3
+    },
+    {
+      "sampler": 0,
+      "source": 4
+    },
+    {
+      "sampler": 0,
+      "source": 5
+    }
+  ]
+}
